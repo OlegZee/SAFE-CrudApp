@@ -8,6 +8,8 @@ syntax: glob
 .idea/
 
 # build files
+obj/
+bin/
 build/
 testrunner/
 appdata/
