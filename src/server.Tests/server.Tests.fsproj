@@ -1,13 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
-
-
   <ItemGroup>
     <ProjectReference Include="../../src/server/server.fsproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="Tests.fs" />
   </ItemGroup>
