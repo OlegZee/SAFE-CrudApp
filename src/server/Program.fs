@@ -1,4 +1,4 @@
-module server.App
+module App
 
 open System
 open System.IO
@@ -8,7 +8,8 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
-open FSharp.Control.Tasks.ContextInsensitive
+
+open Handlers
 
 // ---------------------------------
 // Models
@@ -56,32 +57,14 @@ let indexHandler (name : string) =
     let view      = Views.index model
     htmlView view
 
-module DataHandlers =
-    open DataAccess.Model
-    open Microsoft.AspNetCore.Http
-
-    let users: HttpHandler =
-        fun next ctx ->
-            task {
-                let allUsers =
-                    DataAccess.SqlModel.ctx.Public.Users
-                    |> Seq.map (fun d ->
-                        {   user_id = d.Id; name = d.Name; login = d.Login
-                            targetCalories =  d.TargetCalories |> Option.map float
-                            role = d.Role |> Option.defaultValue "user" })
-                    |> Seq.toArray
-
-                // Do stuff
-                return! ctx.WriteJsonAsync allUsers
-            }
 
 let webApp =
     choose [
+        subRoute "/api/v1" ApiV1.handler
         GET >=>
             choose [
                 route "/" >=> indexHandler "world"
                 routef "/hello/%s" indexHandler
-                route "/api/v1/users" >=> DataHandlers.users
             ]
         setStatusCode 404 >=> text "Not Found" ]
 
@@ -105,10 +88,14 @@ let configureCors (builder : CorsPolicyBuilder) =
 
 let configureApp (app : IApplicationBuilder) =
     let env = app.ApplicationServices.GetService<IWebHostEnvironment>()
-    (match env.EnvironmentName with
+
+    match env.EnvironmentName with
     | "Development"  -> app.UseDeveloperExceptionPage()
-    | _ -> app.UseGiraffeErrorHandler errorHandler)
-        // .UseHttpsRedirection()   FIXME
+    | _ -> app.UseGiraffeErrorHandler errorHandler
+    |> ignore
+    
+    app
+    // .UseHttpsRedirection()   FIXME
         .UseCors(configureCors)
         .UseStaticFiles()
         .UseGiraffe(webApp)

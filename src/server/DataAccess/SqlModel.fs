@@ -6,7 +6,7 @@ let [<Literal>] resolutionPath = __SOURCE_DIRECTORY__ + "\\..\\..\\..\\packages\
 let [<Literal>] connString = "Host=localhost;Database=calories;Username=postgres;Password=sasa"
 
 // create a type alias with the connection string and database vendor settings
-type sql =
+type PostgreSqlCalories =
     SqlDataProvider<
         DatabaseVendor = Common.DatabaseProviderTypes.POSTGRESQL,
         ConnectionString = connString,
@@ -14,4 +14,4 @@ type sql =
         UseOptionTypes = true,
         Owner = "public">
 
-let ctx = sql.GetDataContext()
+let dataCtx = PostgreSqlCalories.GetDataContext()

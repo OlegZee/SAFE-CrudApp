@@ -10,9 +10,10 @@
 
 
   <ItemGroup>
-    <Compile Include="DataAccess\Model.fs" />
-    <Compile Include="DataAccess\SqlModel.fs" />
-    <Compile Include="DataAccess\UserStore.fs" />
+    <Compile Include="DataAccess/SqlModel.fs" />
+    <Compile Include="DataAccess/UserStore.fs" />
+    <Compile Include="../shared/ServerProtocol.V1.fs" />
+    <Compile Include="Handlers/apiv1.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

@@ -1,0 +1,21 @@
+@endpoint=http://localhost:5000
+
+### Get user list / privileged
+
+GET {{endpoint}}/api/v1/users HTTP/1.1
+
+### Get user by id
+
+GET {{endpoint}}/api/v1/users/111 HTTP/1.1
+
+### Get user by id (non-existing)
+
+GET {{endpoint}}/api/v1/users/1 HTTP/1.1
+
+### Get user data by id
+
+GET {{endpoint}}/api/v1/users/111/data HTTP/1.1
+
+### Get user data by data
+
+GET {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
