@@ -5,5 +5,11 @@ nuget Giraffe
 nuget Microsoft.NET.Test.Sdk
 nuget Microsoft.AspNetCore.TestHost
 nuget SQLProvider
+nuget Npgsql 3.2.5
 nuget xunit
 nuget xunit.runner.visualstudio
+
+group npgsql
+source https://api.nuget.org/v3/index.json
+
+nuget Npgsql 3.2.5

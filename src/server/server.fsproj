@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Compile Include="DataAccess\Model.fs" />
+    <Compile Include="DataAccess\SqlModel.fs" />
     <Compile Include="DataAccess\UserStore.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

@@ -8,6 +8,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
+open FSharp.Control.Tasks.ContextInsensitive
 
 // ---------------------------------
 // Models
@@ -55,12 +56,32 @@ let indexHandler (name : string) =
     let view      = Views.index model
     htmlView view
 
+module DataHandlers =
+    open DataAccess.Model
+    open Microsoft.AspNetCore.Http
+
+    let users: HttpHandler =
+        fun next ctx ->
+            task {
+                let allUsers =
+                    DataAccess.SqlModel.ctx.Public.Users
+                    |> Seq.map (fun d ->
+                        {   user_id = d.Id; name = d.Name; login = d.Login
+                            targetCalories =  d.TargetCalories |> Option.map float
+                            role = d.Role |> Option.defaultValue "user" })
+                    |> Seq.toArray
+
+                // Do stuff
+                return! ctx.WriteJsonAsync allUsers
+            }
+
 let webApp =
     choose [
         GET >=>
             choose [
                 route "/" >=> indexHandler "world"
                 routef "/hello/%s" indexHandler
+                route "/api/v1/users" >=> DataHandlers.users
             ]
         setStatusCode 404 >=> text "Not Found" ]
 
