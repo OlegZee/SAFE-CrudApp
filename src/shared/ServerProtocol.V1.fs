@@ -17,8 +17,23 @@ type SummaryData = {
 
 type UserData = {
     record_id: int
-    rdate: System.DateTime   // TODO remove
     rtime: string
     meal: string
     amount: float
+}
+
+type CreateUserData = {
+    rtime: string
+    meal: string
+    amount: float
+}
+
+type UpdUserData = {
+    rtime: string
+    meal: string
+    amount: float
+}
+
+type UserCreated = {
+    record_id: int
 }

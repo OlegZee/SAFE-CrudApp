@@ -19,3 +19,38 @@ GET {{endpoint}}/api/v1/users/111/data HTTP/1.1
 ### Get user data by data
 
 GET {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
+
+### Add new calories
+
+POST {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
+content-type: application/json
+
+{
+    "rtime": "12:25",
+    "meal": "Fish",
+    "amount": 125.0
+}
+
+### Update data
+
+PUT {{endpoint}}/api/v1/users/111/data/2019-10-20/2 HTTP/1.1
+content-type: application/json
+
+{
+    "rtime": "12:22",
+    "meal": "Apple",
+    "amount": 2.0
+}
+
+### Update partial
+
+PUT {{endpoint}}/api/v1/users/111/data/2019-10-20/2 HTTP/1.1
+content-type: application/json
+
+{
+    "rtime": "12:23"
+}
+
+### Delete data
+
+DELETE {{endpoint}}/api/v1/users/111/data/2019-10-20/3 HTTP/1.1
