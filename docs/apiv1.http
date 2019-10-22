@@ -1,28 +1,41 @@
 @endpoint=http://localhost:5000
+@test_user_token=CfDJ8B8vgv0iBzVKiQwDxVjDVRMei5lrInrcYIzMywQoEIsmq2cQbXtc0yTZviO9ypQqASgtBvIwD262ZBisUN5lWvX217425upB4-VE8bijkNZj2ohdQIDkzpmySbXBM_rI18DGx585rmuCIVWuPlsjUTHXt1JXgxkzOGeEOJSyyzFF
+@admin_token=CfDJ8B8vgv0iBzVKiQwDxVjDVRMnZTY1qsU5z8ZAWb7xnVy3-5Idh2QmcYRjNLhx0MASBOryPycZz-ErS-FIdUmbfcqTns-ObP6VW1MAPp_bcJbkq8f9jxA2qRM_j5Lbq1JMggdVDPDNFo4K71pfHCZ1Oc2KzyXklZ_OPC0zlA5geMAi
+
+### Get user list
+
+GET {{endpoint}}/api/v1/users HTTP/1.1
+Authorization: Bearer {{test_user_token}}
 
 ### Get user list / privileged
 
 GET {{endpoint}}/api/v1/users HTTP/1.1
+Authorization: Bearer {{admin_token}}
 
 ### Get user by id
 
 GET {{endpoint}}/api/v1/users/111 HTTP/1.1
+Authorization: Bearer {{admin_token}}
 
 ### Get user by id (non-existing)
 
 GET {{endpoint}}/api/v1/users/1 HTTP/1.1
+Authorization: Bearer {{admin_token}}
 
 ### Get user data by id
 
 GET {{endpoint}}/api/v1/users/111/data HTTP/1.1
+Authorization: Bearer {{admin_token}}
 
 ### Get user data by data
 
 GET {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
+Authorization: Bearer {{admin_token}}
 
 ### Add new calories
 
 POST {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
+Authorization: Bearer {{admin_token}}
 content-type: application/json
 
 {
@@ -34,6 +47,7 @@ content-type: application/json
 ### Update data
 
 PUT {{endpoint}}/api/v1/users/111/data/2019-10-20/2 HTTP/1.1
+Authorization: Bearer {{admin_token}}
 content-type: application/json
 
 {
@@ -45,6 +59,7 @@ content-type: application/json
 ### Update partial
 
 PUT {{endpoint}}/api/v1/users/111/data/2019-10-20/2 HTTP/1.1
+Authorization: Bearer {{admin_token}}
 content-type: application/json
 
 {
@@ -53,4 +68,47 @@ content-type: application/json
 
 ### Delete data
 
-DELETE {{endpoint}}/api/v1/users/111/data/2019-10-20/3 HTTP/1.1
+DELETE {{endpoint}}/api/v1/users/111/data/2019-10-20/11 HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
+### Authentication
+
+POST {{endpoint}}/api/login HTTP/1.1
+content-type: application/json
+
+{
+    "login": "admin",
+    "pwd": "admin"
+}
+
+### Verify authorization (admin user)
+
+GET {{endpoint}}/api/who HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
+### Request mine data
+
+GET {{endpoint}}/api/v1/data HTTP/1.1
+Authorization: Bearer {{test_user_token}}
+
+### Request mine data
+
+GET {{endpoint}}/api/v1/data/2019-10-20 HTTP/1.1
+Authorization: Bearer {{test_user_token}}
+
+### Post mine
+
+POST {{endpoint}}/api/v1/data/2019-10-20 HTTP/1.1
+Authorization: Bearer {{test_user_token}}
+content-type: application/json
+
+{
+    "rtime": "12:25",
+    "meal": "Chicken",
+    "amount": 70.0
+}
+
+### Delete mine
+
+DELETE {{endpoint}}/api/v1/data/2019-10-20/12 HTTP/1.1
+Authorization: Bearer {{test_user_token}}

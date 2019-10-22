@@ -1,13 +1,14 @@
 module Handlers.ApiV1
 
+open System
 open System.Linq
+
 open Giraffe
 open FSharp.Data
 open FSharp.Control.Tasks.ContextInsensitive
 
 open DataAccess.SqlModel
 open ServerProtocol.V1
-open System
 
 module private Mappings =
 
@@ -27,7 +28,6 @@ module private Mappings =
         }
 
 module private Implementation =
-
     let users: HttpHandler =
         fun next ctx -> task {
             let allUsers = dataCtx.Public.Users |> Seq.map Mappings.user
@@ -57,7 +57,7 @@ module private Implementation =
                 }
             |> ctx.WriteJsonAsync
 
-    let getUserDataAt (userId, y, m, d) : HttpHandler =
+    let getUserDataAt userId (y, m, d) : HttpHandler =
         let rdate = DateTime(y, m, d)
         fun next ctx ->
             query { 
@@ -68,7 +68,7 @@ module private Implementation =
             | [] ->   RequestErrors.NOT_FOUND "Not Found" next ctx
             | data -> ctx.WriteJsonAsync data
             
-    let postUserData (userId, y, m, d) : HttpHandler =
+    let postUserData userId (y, m, d) : HttpHandler =
         fun next ctx ->
             let isExistingUser =
                 query { for record in dataCtx.Public.Users do exists (record.Id = userId) }
@@ -90,7 +90,7 @@ module private Implementation =
                     return! Successful.CREATED ({ record_id = record.Id }) next ctx
                 }
 
-    let putUserData (userId, y, m, d, recordId) : HttpHandler =
+    let putUserData userId (y, m, d, recordId) : HttpHandler =
         fun next ctx -> task {
             let foundRecordMaybe = query {
                 for c in dataCtx.Public.Calories do
@@ -121,7 +121,7 @@ module private Implementation =
         }
 
             
-    let deleteUserData (userId, y, m, d, recordId) : HttpHandler =
+    let deleteUserData userId (y, m, d, recordId) : HttpHandler =
         let rdate = DateTime(y, m, d)
         fun next ctx ->
             task {
@@ -130,21 +130,36 @@ module private Implementation =
                     where (c.UserId = userId && c.Id = recordId && c.ConsumeDate = rdate)
                 }
                 let resultCode = Seq.length deleteQuery |> function
-                    |0 -> Successful.OK | _ -> RequestErrors.NOT_FOUND
+                    |1 -> Successful.OK | _ -> RequestErrors.NOT_FOUND
                 let! _ = deleteQuery |> Sql.Seq.``delete all items from single table``
 
                 return! resultCode "" next ctx
             }
             
 open Implementation
-            
+
+let private usersDataHandler userId : HttpHandler =
+    choose [
+        GET >=> route "" >=> getUserSummary userId
+        GET >=> routef "/%i-%i-%i" (getUserDataAt userId)
+        POST >=> routef "/%i-%i-%i" (postUserData userId)
+        DELETE >=> routef "/%i-%i-%i/%i" (deleteUserData userId)
+        PUT >=> routef "/%i-%i-%i/%i" (putUserData userId)
+    ]
+
+let private requiresRole roles (handler: HttpHandler) : HttpHandler =
+    Auth.requiresAuth(fun session ->
+        if roles |> List.contains session.user_role then handler
+        else RequestErrors.FORBIDDEN "Requires privileged role")
+
 let handler : HttpHandler =
     choose [
-        route "/users" >=> GET >=> users
-        routef "/users/%i" (fun u -> GET >=> getUser u)
-        GET >=> (routef "/users/%i/data" getUserSummary)
-        GET >=> (routef "/users/%i/data/%i-%i-%i" getUserDataAt)
-        POST >=> (routef "/users/%i/data/%i-%i-%i" postUserData)
-        DELETE >=> (routef "/users/%i/data/%i-%i-%i/%i" deleteUserData)
-        PUT >=> (routef "/users/%i/data/%i-%i-%i/%i" putUserData)
+        subRoute "/users" <|
+            requiresRole ["admin"; "manager"] (
+                choose [
+                    route "" >=> GET >=> users
+                    routef "/%i" (fun userId -> GET >=> getUser userId)
+                    subRoutef "/%i/data" usersDataHandler ])
+        subRoute "/data" <|
+            Auth.requiresAuth(fun session -> usersDataHandler session.user_id)
     ]

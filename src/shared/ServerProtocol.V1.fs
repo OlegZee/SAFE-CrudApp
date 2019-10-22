@@ -37,3 +37,21 @@ type UpdUserData = {
 type UserCreated = {
     record_id: int
 }
+
+
+// Auth related payloads
+
+type LoginData = {
+    login: string
+    pwd: string
+}
+
+type LoginResult = {
+    token: string
+}
+
+type WhoResult = {
+    role: string
+    login: string
+    name: string
+}

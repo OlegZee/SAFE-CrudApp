@@ -5,6 +5,7 @@ open System.IO
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Cors.Infrastructure
 open Microsoft.AspNetCore.Hosting
+open Microsoft.AspNetCore.DataProtection
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
@@ -61,6 +62,7 @@ let indexHandler (name : string) =
 let webApp =
     choose [
         subRoute "/api/v1" ApiV1.handler
+        Auth.handler
         GET >=>
             choose [
                 route "/" >=> indexHandler "world"
@@ -101,8 +103,11 @@ let configureApp (app : IApplicationBuilder) =
         .UseGiraffe(webApp)
 
 let configureServices (services : IServiceCollection) =
-    services.AddCors()    |> ignore
-    services.AddGiraffe() |> ignore
+    services
+        .AddCors()
+        .AddGiraffe()
+        .AddDataProtection().PersistKeysToFileSystem(DirectoryInfo @"APP_DATA")
+        |> ignore
 
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddFilter(fun l -> l.Equals LogLevel.Error)
@@ -116,7 +121,7 @@ let main _ =
     WebHostBuilder()
         .UseKestrel()
         .UseContentRoot(contentRoot)
-        .UseIISIntegration()
+        // .UseIISIntegration()
         .UseWebRoot(webRoot)
         .Configure(Action<IApplicationBuilder> configureApp)
         .ConfigureServices(configureServices)
