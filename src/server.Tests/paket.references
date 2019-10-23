@@ -1,3 +1,5 @@
+group Tests
+
 Microsoft.NET.Test.Sdk
 Microsoft.AspNetCore.TestHost
 xunit

@@ -1,3 +1,5 @@
-Giraffe
-SQLProvider
-Npgsql
+group Server
+
+    Giraffe
+    SQLProvider
+    Npgsql

@@ -1,0 +1,63 @@
+@charset "utf-8";
+
+// FontAwesome
+$fa_font_path: "~@fortawesome/fontawesome-free/webfonts";
+@import '~@fortawesome/fontawesome-free/scss/fontawesome.scss';
+@import '~@fortawesome/fontawesome-free/scss/regular.scss';
+@import '~@fortawesome/fontawesome-free/scss/solid.scss';
+@import '~@fortawesome/fontawesome-free/scss/brands.scss';
+
+// OpenSans
+$FontPathOpenSans: "~open-sans-fonts/open-sans";
+@import '~open-sans-fonts/open-sans';
+$family-primary: 'Open Sans';
+
+// Bulma
+@import "~bulma/bulma";
+
+html, body {
+  font-family: "Open Sans", serif;
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.hero {
+  &.is-success {
+    background: #F2F6FA;
+  }
+
+  .nav, &.is-success .nav {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+}
+
+.box {
+  margin-top: 5rem;
+}
+
+.avatar {
+  margin-top: -70px;
+  padding-bottom: 20px;
+
+  img {
+    padding: 5px;
+    background: #fff;
+    border-radius: 50%;
+    -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
+    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
+  }
+}
+
+input {
+  font-weight: 300;
+}
+
+p {
+  font-weight: 700;
+
+  &.subtitle {
+    padding-top: 1rem;
+  }
+}
+

@@ -1,15 +1,50 @@
-storage: none
-source https://api.nuget.org/v3/index.json
+group Server
+    source https://api.nuget.org/v3/index.json
+    framework: netcoreapp3.0
+    storage: none
 
-nuget Giraffe
-nuget Microsoft.NET.Test.Sdk
-nuget Microsoft.AspNetCore.TestHost
-nuget SQLProvider
-nuget Npgsql 3.2.5
-nuget xunit
-nuget xunit.runner.visualstudio
+    nuget Giraffe
+    nuget SQLProvider
+    nuget Npgsql 3.2.5
+
+group Tests
+    source https://api.nuget.org/v3/index.json
+    framework: netcoreapp3.0
+    storage: none
+
+    nuget Microsoft.NET.Test.Sdk
+    nuget Microsoft.AspNetCore.TestHost
+    nuget xunit
+    nuget xunit.runner.visualstudio
+
+group Client
+    source https://api.nuget.org/v3/index.json
+    framework: netstandard2.0
+    storage: none
+
+    nuget Fable.Core ~> 3
+    nuget Fable.Elmish ~> 3
+    nuget Fable.Elmish.Debugger ~> 3
+    nuget Fable.Elmish.HMR ~> 4
+    nuget Fable.Elmish.React ~> 3
+    nuget Thoth.Fetch ~> 1
+    nuget Fable.React ~> 5
+    nuget Fulma ~> 2
+    nuget Fable.FontAwesome.Free ~> 2
 
 group npgsql
-source https://api.nuget.org/v3/index.json
+    source https://api.nuget.org/v3/index.json
 
-nuget Npgsql 3.2.5
+    nuget Npgsql 3.2.5
+
+group Build
+    source https://api.nuget.org/v3/index.json
+    framework: netstandard2.0
+    storage: none
+
+    nuget FSharp.Core
+    nuget Fake.Core.ReleaseNotes
+    nuget Fake.Core.Target
+    nuget Fake.DotNet.Cli
+    nuget Fake.IO.FileSystem
+

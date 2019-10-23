@@ -1,6 +1,6 @@
-@endpoint=http://localhost:5000
-@test_user_token=CfDJ8B8vgv0iBzVKiQwDxVjDVRMei5lrInrcYIzMywQoEIsmq2cQbXtc0yTZviO9ypQqASgtBvIwD262ZBisUN5lWvX217425upB4-VE8bijkNZj2ohdQIDkzpmySbXBM_rI18DGx585rmuCIVWuPlsjUTHXt1JXgxkzOGeEOJSyyzFF
-@admin_token=CfDJ8B8vgv0iBzVKiQwDxVjDVRMnZTY1qsU5z8ZAWb7xnVy3-5Idh2QmcYRjNLhx0MASBOryPycZz-ErS-FIdUmbfcqTns-ObP6VW1MAPp_bcJbkq8f9jxA2qRM_j5Lbq1JMggdVDPDNFo4K71pfHCZ1Oc2KzyXklZ_OPC0zlA5geMAi
+@endpoint=http://localhost:8085
+@test_user_token=CfDJ8B8vgv0iBzVKiQwDxVjDVRNz4GgorjdxbJQh-n9jT1g6iMnnlTHWYNOTYAOjfqc87dh_FgVi5MQYJ7EwsxCi1IXLcCE63QGummcO0GvX1M060j7dBEa2PhxsJ-mNIC-V2YrTjvSUBWhFHDzbREgUJbQorBEQkMmOZmPLO-oFceQ4
+@admin_token=CfDJ8B8vgv0iBzVKiQwDxVjDVRMRbqH5jf8c44FsWm22n99sQPvlkJrz4l0QNrG2shYvYOYavd4g6mK-_rr9juDJYzD2tx7ebmxNvtRsoIb_Iwaw1wSpcOqVp6psmWRvzxYELgvM3ZeMqAWmzyA6Pzv-DmOHGqzYy_-KdvL4PnVY3rlg
 
 ### Get user list
 
@@ -71,7 +71,7 @@ content-type: application/json
 DELETE {{endpoint}}/api/v1/users/111/data/2019-10-20/11 HTTP/1.1
 Authorization: Bearer {{admin_token}}
 
-### Authentication
+### Authentication (login as admin)
 
 POST {{endpoint}}/api/login HTTP/1.1
 content-type: application/json
@@ -79,6 +79,16 @@ content-type: application/json
 {
     "login": "admin",
     "pwd": "admin"
+}
+
+### Login as test
+
+POST {{endpoint}}/api/login HTTP/1.1
+content-type: application/json
+
+{
+    "login": "test",
+    "pwd": "test"
 }
 
 ### Verify authorization (admin user)

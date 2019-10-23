@@ -12,99 +12,26 @@ open Giraffe
 
 open Handlers
 
-// ---------------------------------
-// Models
-// ---------------------------------
+let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 
-type Message =
-    {
-        Text : string
-    }
-
-// ---------------------------------
-// Views
-// ---------------------------------
-
-module Views =
-    open GiraffeViewEngine
-
-    let layout (content: XmlNode list) =
-        html [] [
-            head [] [
-                title []  [ encodedText "server" ]
-                link [ _rel  "stylesheet"
-                       _type "text/css"
-                       _href "/main.css" ]
-            ]
-            body [] content
-        ]
-
-    let partial () =
-        h1 [] [ encodedText "server" ]
-
-    let index (model : Message) =
-        [
-            partial()
-            p [] [ encodedText model.Text ]
-        ] |> layout
-
-// ---------------------------------
-// Web app
-// ---------------------------------
-
-let indexHandler (name : string) =
-    let greetings = sprintf "Hello %s, from Giraffe!" name
-    let model     = { Text = greetings }
-    let view      = Views.index model
-    htmlView view
-
+let publicPath = Path.GetFullPath "../client/deploy"
+let port =
+    "SERVER_PORT"
+    |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
 let webApp =
     choose [
         subRoute "/api/v1" ApiV1.handler
         Auth.handler
-        GET >=>
-            choose [
-                route "/" >=> indexHandler "world"
-                routef "/hello/%s" indexHandler
-            ]
         setStatusCode 404 >=> text "Not Found" ]
 
-// ---------------------------------
-// Error handler
-// ---------------------------------
-
-let errorHandler (ex : Exception) (logger : ILogger) =
-    logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
-    clearResponse >=> setStatusCode 500 >=> text ex.Message
-
-// ---------------------------------
-// Config and Main
-// ---------------------------------
-
-let configureCors (builder : CorsPolicyBuilder) =
-    builder.WithOrigins("http://localhost:8080")
-           .AllowAnyMethod()
-           .AllowAnyHeader()
-           |> ignore
-
 let configureApp (app : IApplicationBuilder) =
-    let env = app.ApplicationServices.GetService<IWebHostEnvironment>()
-
-    match env.EnvironmentName with
-    | "Development"  -> app.UseDeveloperExceptionPage()
-    | _ -> app.UseGiraffeErrorHandler errorHandler
-    |> ignore
-    
-    app
-    // .UseHttpsRedirection()   FIXME
-        .UseCors(configureCors)
+    app.UseDefaultFiles()    // .UseHttpsRedirection()   FIXME
         .UseStaticFiles()
-        .UseGiraffe(webApp)
+        .UseGiraffe webApp
 
 let configureServices (services : IServiceCollection) =
     services
-        .AddCors()
         .AddGiraffe()
         .AddDataProtection().PersistKeysToFileSystem(DirectoryInfo @"APP_DATA")
         |> ignore
@@ -116,16 +43,15 @@ let configureLogging (builder : ILoggingBuilder) =
 
 [<EntryPoint>]
 let main _ =
-    let contentRoot = Directory.GetCurrentDirectory()
-    let webRoot     = Path.Combine(contentRoot, "WebRoot")
     WebHostBuilder()
         .UseKestrel()
-        .UseContentRoot(contentRoot)
+        .UseContentRoot(publicPath)
         // .UseIISIntegration()
-        .UseWebRoot(webRoot)
+        .UseWebRoot(publicPath)
         .Configure(Action<IApplicationBuilder> configureApp)
         .ConfigureServices(configureServices)
         .ConfigureLogging(configureLogging)
+        .UseUrls("http://0.0.0.0:" + port.ToString() + "/")
         .Build()
         .Run()
     0

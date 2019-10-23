@@ -36,8 +36,6 @@ module private Implementation =
             let! loginData = ctx.BindJsonAsync<LoginData>()
             let pwdHash = CryptoHelpers.calculateHash loginData.pwd
 
-            printfn "login %A" loginData
-
             match query
                 { for user in dataCtx.Public.Users do
                     where (user.Login = loginData.login); select user } |> Seq.tryHead with
@@ -45,7 +43,6 @@ module private Implementation =
             | Some user when user.Pwdhash = pwdHash ->
                 let sessionData = { user_id = user.Id; user_role = user.Role |> Option.defaultValue "user" }
                 let token = CryptoHelpers.encrypt protector sessionData
-                printfn "token %A" token
 
                 return! Successful.OK { token = token } next ctx
             | Some _ ->

@@ -12,9 +12,11 @@ packages/
 obj/
 bin/
 build/
+.fake/
 testrunner/
 appdata/
 APP_DATA/
+deploy/
 
 # Node
 node_modules/

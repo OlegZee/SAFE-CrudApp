@@ -17,8 +17,8 @@ open Microsoft.Extensions.DependencyInjection
 let createHost() =
     WebHostBuilder()
         .UseContentRoot(Directory.GetCurrentDirectory())
-        .Configure(Action<IApplicationBuilder> server.App.configureApp)
-        .ConfigureServices(Action<IServiceCollection> server.App.configureServices)
+        .Configure(Action<IApplicationBuilder> App.configureApp)
+        .ConfigureServices(Action<IServiceCollection> App.configureServices)
 
 let runTask task =
     task
