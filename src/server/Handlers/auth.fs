@@ -56,7 +56,13 @@ module private Implementation =
         }
 
     let who : HttpHandler =
-        requiresAuth(fun session -> Successful.OK {| role = session.user_role |})
+        requiresAuth(fun session ->
+            match query
+                { for user in dataCtx.Public.Users do
+                    where (user.Id = session.user_id); select user } |> Seq.tryHead with
+            | Some user ->
+                Successful.OK { role = session.user_role; name = user.Name; login = user.Login }
+            | None -> RequestErrors.NOT_FOUND "" )
 
 open Implementation
 

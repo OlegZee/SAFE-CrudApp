@@ -86,6 +86,11 @@ content-type: application/json
 GET {{endpoint}}/api/who HTTP/1.1
 Authorization: Bearer {{admin_token}}
 
+### Retrieve info about logged in user
+
+GET {{endpoint}}/api/v1/me HTTP/1.1
+Authorization: Bearer {{test_user_token}}
+
 ### Request mine data
 
 GET {{endpoint}}/api/v1/data HTTP/1.1
@@ -93,22 +98,37 @@ Authorization: Bearer {{test_user_token}}
 
 ### Request mine data
 
-GET {{endpoint}}/api/v1/data/2019-10-20 HTTP/1.1
+GET {{endpoint}}/api/v1/data/2019-10-21 HTTP/1.1
 Authorization: Bearer {{test_user_token}}
 
 ### Post mine
 
-POST {{endpoint}}/api/v1/data/2019-10-20 HTTP/1.1
+POST {{endpoint}}/api/v1/data/2019-10-21 HTTP/1.1
 Authorization: Bearer {{test_user_token}}
 content-type: application/json
 
 {
-    "rtime": "12:25",
+    "rtime": "12:10",
     "meal": "Chicken",
-    "amount": 70.0
+    "amount": 50.0
 }
 
-### Delete mine
+### Delete mine data
 
 DELETE {{endpoint}}/api/v1/data/2019-10-20/12 HTTP/1.1
 Authorization: Bearer {{test_user_token}}
+
+### Read settings
+
+GET {{endpoint}}/api/v1/settings HTTP/1.1
+Authorization: Bearer {{test_user_token}}
+
+### Update settings
+
+PUT {{endpoint}}/api/v1/settings HTTP/1.1
+Authorization: Bearer {{test_user_token}}
+content-type: application/json
+
+{
+    "targetCalories": 480.2
+}

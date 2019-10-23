@@ -55,3 +55,9 @@ type WhoResult = {
     login: string
     name: string
 }
+
+// Settings
+
+type UserSettings = {
+    targetCalories: float
+}

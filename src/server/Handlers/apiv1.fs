@@ -27,7 +27,7 @@ module private Mappings =
             amount = float r.Amount
         }
 
-module private Implementation =
+module private UsersApi =
     let users: HttpHandler =
         fun next ctx -> task {
             let allUsers = dataCtx.Public.Users |> Seq.map Mappings.user
@@ -99,7 +99,6 @@ module private Implementation =
                 exactlyOneOrDefault
             }
             let! newData = ctx.BindJsonAsync<UpdUserData>()
-            printfn "put %A" newData
 
             return!
                 match foundRecordMaybe with
@@ -135,16 +134,44 @@ module private Implementation =
 
                 return! resultCode "" next ctx
             }
-            
-open Implementation
 
+module SettingsApi =
+    let getSettings userId : HttpHandler =
+        fun next ctx ->
+            query { 
+                for user in dataCtx.Public.Users do
+                    where (user.Id = userId); select user }
+            |> Seq.tryHead
+            |> function
+            | Some user -> ctx.WriteJsonAsync { targetCalories = user.TargetCalories |> Option.map float |> Option.defaultValue 0.0 }
+            | _ ->         RequestErrors.NOT_FOUND "Not Found" next ctx
+
+    let putSettings userId : HttpHandler =
+        fun next ctx -> task {
+            let! settings = ctx.BindJsonAsync<UserSettings>()
+            let result =
+                query {
+                    for u in dataCtx.Public.Users do
+                    where (u.Id = userId); select u }
+                |> Seq.tryHead
+                |> function
+                | Some dataRecord ->
+                    dataRecord.TargetCalories <-
+                        settings.targetCalories |> function| a when a > 0.0 ->  Some <| decimal a | _ -> None
+                    dataCtx.SubmitUpdates()
+                    Successful.OK ""
+                | None ->
+                    RequestErrors.NOT_FOUND "Not Found"
+            return! result next ctx
+        }
+            
 let private usersDataHandler userId : HttpHandler =
     choose [
-        GET >=> route "" >=> getUserSummary userId
-        GET >=> routef "/%i-%i-%i" (getUserDataAt userId)
-        POST >=> routef "/%i-%i-%i" (postUserData userId)
-        DELETE >=> routef "/%i-%i-%i/%i" (deleteUserData userId)
-        PUT >=> routef "/%i-%i-%i/%i" (putUserData userId)
+        GET >=> route "" >=> UsersApi.getUserSummary userId
+        GET >=> routef "/%i-%i-%i" (UsersApi.getUserDataAt userId)
+        POST >=> routef "/%i-%i-%i" (UsersApi.postUserData userId)
+        DELETE >=> routef "/%i-%i-%i/%i" (UsersApi.deleteUserData userId)
+        PUT >=> routef "/%i-%i-%i/%i" (UsersApi.putUserData userId)
     ]
 
 let private requiresRole roles (handler: HttpHandler) : HttpHandler =
@@ -157,9 +184,17 @@ let handler : HttpHandler =
         subRoute "/users" <|
             requiresRole ["admin"; "manager"] (
                 choose [
-                    route "" >=> GET >=> users
-                    routef "/%i" (fun userId -> GET >=> getUser userId)
+                    route "" >=> GET >=> UsersApi.users
+                    routef "/%i" (fun userId -> GET >=> UsersApi.getUser userId)
                     subRoutef "/%i/data" usersDataHandler ])
         subRoute "/data" <|
             Auth.requiresAuth(fun session -> usersDataHandler session.user_id)
+        route "/me" >=> GET >=>
+            Auth.requiresAuth(fun session -> UsersApi.getUser session.user_id)
+        route "/settings" >=>
+            Auth.requiresAuth(fun session ->
+                choose [
+                    GET >=> SettingsApi.getSettings session.user_id
+                    PUT >=> SettingsApi.putSettings session.user_id
+                ])
     ]
