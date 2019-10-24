@@ -4,96 +4,95 @@ open Browser.Dom
 open Elmish
 open Elmish.React
 open Elmish.Navigation
-open Fable.FontAwesome
-open Fable.FontAwesome.Free
 open Fable.React
 open Fable.Core
-open Fable.React.Props
 open Fetch.Types
 open Thoth.Fetch
 open Fulma
-open Thoth.Json
 
 open ServerProtocol.V1
 open Router
 
-type Model = {
-    currentPage: Page
-    token: string
+type ScreenModel =
+    | OverviewMode of string
 
-    data: string
-    login: Login.Types.Model
-}
+[<Erase>]
+type Token = Token of string
+
+type SessionInfo = { token: Token; userName: string; userRole: string; target: float }
+
+type Model =
+    | Initializing
+    | LoggingIn of Login.Types.Model
+    | Connected of SessionInfo * ScreenModel
 
 type Msg =
     | LoginMsg of Login.Types.Msg
-    | WhoResultReady of Result<User,string>
-    | LoginResultReady of Result<LoginResult,string>
     | ProcessLogin of Login.Types.ParentMsg
+    | LoggedIn of Result<Token*User,string>
 
-let whoAmI token =
-    promise {
-        let headers = [ ContentType "application/json"; Authorization ("Bearer " + token) ]
-        try return! Fetch.tryFetchAs<User> ("/api/v1/me", [Fetch.requestHeaders headers ])
-        with e -> return (Error (string e)) }
-
-let loginServer (login, pwd) : JS.Promise<Result<LoginResult,string>> =
+let mkRestRequestProps (Token token) =
+    [Fetch.requestHeaders [ ContentType "application/json"; Authorization ("Bearer " + token) ] ]
+    
+let loginServer (login, pwd) : JS.Promise<Result<Token*User,string>> =
     promise {        
         let request = { login = login; pwd = pwd }
-        try return! Fetch.tryPost("/api/login", request, isCamelCase = false)
+        try
+            let! (loginResponse: Result<LoginResult,string>) = Fetch.tryPost("/api/login", request, isCamelCase = false)
+            match loginResponse with
+            | Ok { token = token } ->
+                let! user = Fetch.tryFetchAs<User> ("/api/v1/me", mkRestRequestProps (Token token))
+                return user |> Result.map(fun u -> (Token token, u))
+            | Error e ->
+                return Error e
         with e -> return (Error (string e)) }
 
-let urlUpdate (result: Option<Page>) model =
-    console.log ("urlupdate", result)
-    match result with
-    | None ->
-        model, Navigation.modifyUrl (toPath model.currentPage)
-    | Some page ->
-        { model with currentPage = page }, Cmd.none
+let urlUpdate (page: Option<Page>) (model: Model) =
+    console.log ("urlupdate", page)
+    match model, page with
+    | _, Some LoginScreen | _, Some LoginScreen ->
+        let loginModel, cmd = Login.State.init()
+        LoggingIn loginModel, Cmd.map LoginMsg cmd
+    | Connected (session, _), Some Home ->
+        // TODO translate page to screen model
+        Connected (session, OverviewMode session.userName), Cmd.none
+    | Connected (session, _), page ->
+        // TODO translate page to screen model
+        Connected (session, OverviewMode (page.ToString())), Cmd.none
+    | _ ->
+        // otherwise redirect to login
+        Initializing, toPath LoginScreen |> Navigation.newUrl
 
 // defines the initial state and initial command (= side-effect) of the application
 let init result : Model * Cmd<Msg> =
-    let loginModel, _ = Login.State.init()
-    // TODO retrieve token from store
-    let initialModel = { currentPage = Page.Home; token = ""; data = "loading"; login = loginModel }
-    let requestWhoCmd =
-        console.log "sending who"
-        Cmd.OfPromise.perform whoAmI initialModel.token WhoResultReady
-    initialModel, requestWhoCmd
+    Initializing, toPath LoginScreen |> Navigation.newUrl
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     console.log("got update", msg)
-    match msg with
-    | LoginMsg loginMsg ->
-        let nextModel, _ = Login.State.update loginMsg model.login
-        { model with login = nextModel }, Cmd.none
-    | ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
-        let loginCmd = Cmd.OfPromise.perform loginServer (x, y) LoginResultReady
-        model, loginCmd
-        
-    | WhoResultReady (Ok user) ->
-        let nextModel = { model with data = "I am a " + user.name }
-        nextModel, toPath Page.Home |> Navigation.newUrl
-    | WhoResultReady (Error e) ->
-        model, toPath LoginScreen |> Navigation.newUrl
+    match model, msg with
+    | LoggingIn model, LoginMsg msg ->
+        let nextModel, cmd = Login.State.update msg model
+        LoggingIn nextModel, Cmd.map LoginMsg cmd
 
-    | LoginResultReady (Ok data) ->
-        let nextModel = { model with token = data.token; login = Login.State.init() |> fst }
-        nextModel, Cmd.OfPromise.perform whoAmI data.token WhoResultReady
-
-    | LoginResultReady (Error e) ->
-        console.log("login failed", e) // TODO display error on login screen
+    | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
+        model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
+    | _, LoggedIn (Ok (token, user)) ->
+        let session: SessionInfo = { token = token; userName = user.name; userRole = user.role; target = user.targetCalories}
+        Connected (session, OverviewMode ""), toPath Home |> Navigation.newUrl
+    | _, LoggedIn (Error e) ->
         model, toPath LoginScreen |> Navigation.newUrl
 
     | _ -> model, Cmd.none
 
 let view (model : Model) (dispatch : Msg -> unit) =
     let page =
-        match model.currentPage with
-        | Page.LoginScreen -> 
-            Login.view model.login (LoginMsg >> dispatch) (ProcessLogin >> dispatch)
-        | Page.Home ->
-            span [] [ str "Home "; strong [ ] [ str model.data ] ]
+        match model with
+        | Initializing ->
+            span [] [ str "initializing..." ]
+        | LoggingIn model -> 
+            Login.view model (LoginMsg >> dispatch) (ProcessLogin >> dispatch)
+        | Connected (session, OverviewMode x) ->
+            span [] [ str "User is logged in "; strong [ ] [ str session.userName ] ]
         | other ->
             span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ]
     Hero.hero
