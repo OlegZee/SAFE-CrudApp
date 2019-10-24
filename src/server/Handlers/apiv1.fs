@@ -50,6 +50,7 @@ module private UsersApi =
                 for record in dataCtx.Public.Calories do
                     where (record.UserId = userId)
                     groupBy record.ConsumeDate into g
+                    sortBy g.Key
                     select  {
                         rdate = g.Key
                         count = g.Count()

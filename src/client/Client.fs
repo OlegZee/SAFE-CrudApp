@@ -13,9 +13,6 @@ open Fulma
 open ServerProtocol.V1
 open Router
 
-type ScreenModel =
-    | OverviewMode of string
-
 [<Erase>]
 type Token = Token of string
 
@@ -24,10 +21,11 @@ type SessionInfo = { token: Token; userName: string; userRole: string; target: f
 type Model =
     | Initializing
     | LoggingIn of Login.Types.Model
-    | Connected of SessionInfo * ScreenModel
+    | Connected of Token * App.Types.Model
 
 type Msg =
     | LoginMsg of Login.Types.Msg
+    | AppMsg of App.Types.Msg
     | ProcessLogin of Login.Types.ParentMsg
     | LoggedIn of Result<Token*User,string>
 
@@ -53,12 +51,9 @@ let urlUpdate (page: Option<Page>) (model: Model) =
     | _, Some LoginScreen | _, Some LoginScreen ->
         let loginModel, cmd = Login.State.init()
         LoggingIn loginModel, Cmd.map LoginMsg cmd
-    | Connected (session, _), Some Home ->
-        // TODO translate page to screen model
-        Connected (session, OverviewMode session.userName), Cmd.none
-    | Connected (session, _), page ->
-        // TODO translate page to screen model
-        Connected (session, OverviewMode (page.ToString())), Cmd.none
+    | Connected (session, appModel), _ ->
+        let appState, cmd = App.State.urlUpdate page appModel
+        Connected (session, appState), Cmd.map AppMsg cmd
     | _ ->
         // otherwise redirect to login
         Initializing, toPath LoginScreen |> Navigation.newUrl
@@ -76,33 +71,45 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
 
     | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
         model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
-    | _, LoggedIn (Ok (token, user)) ->
-        let session: SessionInfo = { token = token; userName = user.name; userRole = user.role; target = user.targetCalories}
-        Connected (session, OverviewMode ""), toPath Home |> Navigation.newUrl
+    | _, LoggedIn (Ok (Token token, user)) ->
+        console.log("initialized app state, nagivate /", msg)
+        let appModel, cmd = App.State.init (user, token)
+        Connected (Token token, appModel),
+            Cmd.batch [
+                toPath Home |> Navigation.newUrl
+                cmd |> Cmd.map AppMsg ]
     | _, LoggedIn (Error e) ->
         model, toPath LoginScreen |> Navigation.newUrl
 
-    | _ -> model, Cmd.none
+    | Connected (session, appModel), AppMsg msg ->
+        let nextModel, cmd = App.State.update msg appModel
+        Connected (session, nextModel), Cmd.map AppMsg cmd
+
+    | _ ->
+        console.log("unhandled message", msg)
+        model, Cmd.none
 
 let view (model : Model) (dispatch : Msg -> unit) =
-    let page =
-        match model with
-        | Initializing ->
-            span [] [ str "initializing..." ]
-        | LoggingIn model -> 
-            Login.view model (LoginMsg >> dispatch) (ProcessLogin >> dispatch)
-        | Connected (session, OverviewMode x) ->
-            span [] [ str "User is logged in "; strong [ ] [ str session.userName ] ]
-        | other ->
-            span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ]
-    Hero.hero
-        [ Hero.Color IsSuccess
-          Hero.IsFullHeight ]
-        [ Hero.body [ ]
-            [ Container.container
-                [ Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
-                [ page ] ] ]
-    
+
+    let wrapPage page =
+        Hero.hero
+            [ Hero.Color IsSuccess
+              Hero.IsFullHeight ]
+            [ Hero.body [ ]
+                [ Container.container
+                    [ Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+                    [ page ] ] ]
+
+    match model with
+    | Initializing ->
+        span [] [ str "initializing..." ] |> wrapPage
+    | LoggingIn model -> 
+        Login.view model (LoginMsg >> dispatch) (ProcessLogin >> dispatch) |> wrapPage
+    | Connected (_, appModel) ->
+        App.View.view appModel (AppMsg >> dispatch)
+    | other ->
+        span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ] |> wrapPage
+
 #if DEBUG
 open Elmish.Debug
 open Elmish.HMR
