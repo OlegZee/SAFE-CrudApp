@@ -15,20 +15,14 @@ open Thoth.Json
 open ServerProtocol.V1
 open Router
 
-// The model holds data that you want to keep track of while the application is running
-// in this case, we are keeping track of a counter
-// we mark it as optional, because initially it will not be available from the client
-// the initial value will be requested from server
-
 type Model = {
     currentPage: Page
     token: string
+
     data: string
     login: unit
 }
 
-// The Msg type defines what events/actions can occur while the application is running
-// the state of the application changes *only* in reaction to these events
 type Msg =
     | LoginMsg of Login.Types.Msg
     | WhoResultReady of Result<User,string>
@@ -63,15 +57,15 @@ let update (msg : Msg) (currentModel : Model) : Model * Cmd<Msg> =
         let nextModel = { currentModel with data = "I am a " + user.name }
         nextModel, Cmd.none
     | _, WhoResultReady (Error e) ->
-        currentModel, toPath Login |> Navigation.newUrl
+        currentModel, toPath LoginScreen |> Navigation.newUrl
     | _ -> currentModel, Cmd.none
 
 let view (model : Model) (dispatch : Msg -> unit) =
     let page =
         match model.currentPage with
-        | Login -> 
+        | Page.LoginScreen -> 
             Login.view model.login (Msg.LoginMsg >> dispatch)
-        | Home ->
+        | Page.Home ->
             span [] [ str "Home "; strong [ ] [ str model.data ] ]
     Hero.hero
         [ Hero.Color IsSuccess
