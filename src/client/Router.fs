@@ -11,7 +11,7 @@ type Page =
     | UserCaloriesInput of int * System.DateTime
 
 let toPath = function
-    | Home -> "/"
+    | Home -> "#/"
     | CaloriesInput day -> "#/data/" + day.ToString("yyyy-mm-dd")
     | LoginScreen -> "#/login"
     | ManageUsers -> "#/users"
