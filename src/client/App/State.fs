@@ -40,8 +40,8 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
     | Some Router.Home ->
         let retrieveSummaryCmd = Cmd.OfPromise.perform ServerComm.retrieveMyData user.token ReceivedUserSummary
         Model (user, NoView), retrieveSummaryCmd
-    | Some (Router.CaloriesInput d) ->
-        Model (user, OverviewMode <| sprintf "calories input %A" d), Cmd.none
+    | Some (Router.DailyView d) ->
+        Model (user, DayView d), Cmd.none
     | Some page ->
         Model (user, OverviewMode (page.ToString())), Cmd.none
     

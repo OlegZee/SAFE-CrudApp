@@ -4,7 +4,7 @@ open Elmish.UrlParser
 
 type Page =
     | Home      // routes to overview page
-    | CaloriesInput of System.DateTime
+    | DailyView of System.DateTime
     | LoginScreen
     | ManageUsers
     | UserOverview of int
@@ -12,11 +12,11 @@ type Page =
 
 let toPath = function
     | Home -> "#/"
-    | CaloriesInput day -> "#/data/" + day.ToString("yyyy-mm-dd")
+    | DailyView day -> "#/data/" + day.ToString("yyyy-MM-dd")
     | LoginScreen -> "#/login"
     | ManageUsers -> "#/users"
     | UserOverview userId -> sprintf "#/users/%i" userId
-    | UserCaloriesInput (userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-mm-dd"))
+    | UserCaloriesInput (userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-MM-dd"))
 
 let dt state =
     let parseDate (s: string) =
@@ -28,7 +28,7 @@ let dt state =
 let pageParser : Parser<Page->_,Page> =
     oneOf [
         map Home (s "")
-        map CaloriesInput (s "data" </> dt)
+        map DailyView (s "data" </> dt)
         map LoginScreen (s "login")
         map ManageUsers (s "users")
         map UserOverview (s "users" </> i32)

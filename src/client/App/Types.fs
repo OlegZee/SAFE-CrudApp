@@ -7,7 +7,7 @@ type AppView =
     | NoView
     | OverviewMode of string
     | SummaryData of SummaryData list
-    | CaloriesInput of System.DateTime
+    | DayView of System.DateTime
 
 type Model = Model of UserInfo * AppView
 type Msg =
