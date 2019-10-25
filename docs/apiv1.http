@@ -108,12 +108,12 @@ Authorization: Bearer {{test_user_token}}
 
 ### Request mine data
 
-GET {{endpoint}}/api/v1/data/2019-10-21 HTTP/1.1
+GET {{endpoint}}/api/v1/data/2019-10-20 HTTP/1.1
 Authorization: Bearer {{test_user_token}}
 
 ### Post mine
 
-POST {{endpoint}}/api/v1/data/2019-10-21 HTTP/1.1
+POST {{endpoint}}/api/v1/data/2019-10-20 HTTP/1.1
 Authorization: Bearer {{test_user_token}}
 content-type: application/json
 

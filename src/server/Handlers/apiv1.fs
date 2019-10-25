@@ -61,13 +61,15 @@ module private UsersApi =
     let getUserDataAt userId (y, m, d) : HttpHandler =
         let rdate = DateTime(y, m, d)
         fun next ctx ->
-            query { 
-                for record in dataCtx.Public.Calories do
-                    where (record.UserId = userId && record.ConsumeDate = rdate)
-                    select (Mappings.userData record)
-            } |> Seq.toList |> function
-            | [] ->   RequestErrors.NOT_FOUND "Not Found" next ctx
-            | data -> ctx.WriteJsonAsync data
+            if query { for record in dataCtx.Public.Users do exists (record.Id = userId) } then
+                query { 
+                    for record in dataCtx.Public.Calories do
+                        where (record.UserId = userId && record.ConsumeDate = rdate)
+                        sortBy record.ConsumeTime; thenBy record.Id
+                        select (Mappings.userData record)
+                } |> Seq.toList |> ctx.WriteJsonAsync
+            else
+                RequestErrors.NOT_FOUND "Not Found" next ctx
             
     let postUserData userId (y, m, d) : HttpHandler =
         fun next ctx ->

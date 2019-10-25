@@ -7,9 +7,10 @@ type AppView =
     | NoView
     | OverviewMode of string
     | SummaryData of SummaryData list
-    | DayView of System.DateTime
+    | DayView of EntryForm.Types.Model
 
 type Model = Model of UserInfo * AppView
 type Msg =
     | RefreshUserData
     | ReceivedUserSummary of Result<SummaryData list,string>
+    | DayViewMsg of EntryForm.Types.Msg

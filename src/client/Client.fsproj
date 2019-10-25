@@ -11,11 +11,15 @@
         <Compile Include="Version.fs" />
         <Compile Include="..\Shared\ServerProtocol.V1.fs" />
         <Compile Include="Router.fs" />
+        <Compile Include="ServerComm.fs" />
         <Compile Include="Login\View.fs" />
+        <Compile Include="EntryForm\Types.fs" />
+        <Compile Include="EntryForm\State.fs" />
+        <Compile Include="EntryForm\View.fs" />
         <Compile Include="App\Types.fs" />
         <Compile Include="App\State.fs" />
         <Compile Include="App\View.fs" />
-        <Compile Include="Client.fs" />
+        <Compile Include="Program.fs" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
