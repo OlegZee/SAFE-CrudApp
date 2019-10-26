@@ -1,12 +1,12 @@
 module App.View
 
-open Elmish
 open Fable.React
 open Fable.React.Props
 open Fulma
 
 open App.Types
 open ServerProtocol.V1
+open Fable.FontAwesome
 
 let collectUserCalories (m: EntryForm.Types.Model): float =
     
@@ -35,65 +35,6 @@ let topNav =
                           Navbar.Item.a [ Navbar.Item.Props [ Href <| Router.toPath Router.LoginScreen ] ] [ str "Logout" ]
                           ] ] ] ] ]
                           
-let summaryData (user: UserInfo) (data: SummaryData list) =
-    let cmp f = function
-        | Some (x: SummaryData) -> f x.amount
-        | None -> false
-    let itemView (date, d: SummaryData option) =
-        div [ classList [
-                "card", true
-                "exceed-target", d |> cmp ((<) user.target)
-                "within-target", d |> cmp ((>=) user.target)
-                ] ] [
-            a [ Href <| Router.toPath (Router.DailyView date) ] [
-                div [ Class "card-content" ] [
-                    yield span [ Class "summary-date" ] [ str (string date.Day) ]
-                    match d with
-                    | Some x ->
-                        yield span [ Class "summary-amount" ] [
-                            str <| x.amount.ToString()
-                            str " calories" ]
-                    | None -> yield str ""
-                ] ]
-        ]
-
-    let weekDayNames = [| "Sun"; "Mon"; "Tue"; "Wed"; "Thu"; "Fri"; "Sat" |]
-    let monthNames = [|
-        "January"; "February"; "March"; "April"; "May"; "June"; "July"
-        "August"; "September"; "October"; "November"; "December"
-      |]
-
-    let now = System.DateTime.Now
-    let firstDay = System.DateTime(now.Year, now.Month, 1)
-    let lastDay = (firstDay.AddMonths 1).AddDays(-1.0)
-    let days =
-        [   for day in 1..lastDay.Day do
-            let date = System.DateTime(now.Year, now.Month, day)
-            let dayData = data |> List.tryFind (fun d -> d.rdate = date)
-            yield date, dayData ]
-
-    let blanks x = List.init x (fun _ -> None)
-    let calendar = blanks (int firstDay.DayOfWeek) @ (List.map Some days) @ blanks (6 - int lastDay.DayOfWeek)
-    let splitBy n =
-        List.mapi (fun i d -> (i / n, d))
-        >> List.groupBy fst
-        >> List.map (snd >> List.map snd)
-
-    div [ Class "summary-items" ]
-        [ yield Heading.h2 [] [ str user.userName ]
-          yield Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
-          yield Columns.columns [ Columns.IsGap (Screen.All, Columns.Is1) ]
-                    (weekDayNames |> List.ofArray |> List.map (fun d -> Column.column [] [ strong [] [str d] ]))
-          yield!
-              calendar |> splitBy 7 |>
-              List.map (fun week ->
-                  Columns.columns [ Columns.IsGap (Screen.All, Columns.Is1) ]
-                      (week |> List.map (function
-                          | Some d -> Column.column [ ] [ itemView d ]
-                          | None -> Column.column [ ] [ str "" ] ))
-                  )
-        ]
-
 let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
 
     let content =
@@ -102,20 +43,23 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
             strong [ ] [ str "Loading data..." ]
         | DayView x ->
             let currentCalories = collectUserCalories x
-            let bkStyle = if currentCalories >= user.target then [ BackgroundColor "#FFcec8" ] else []
 
             div [ Class "app-screen-title" ]
               [ Heading.h2 [] [ str user.userName ]
                 Heading.h3 [] [ str <| x.date.ToShortDateString() ]
                 EntryForm.View.view x (DayViewMsg >> dispatch)
-                div [ Style bkStyle ] [
-                    div [ Class "target" ] [
-                        div [ ] [ str "Target: "; str <| user.target.ToString()] 
-                        div [ ] [ str "Current: "; str <| currentCalories.ToString()] ]
+                Level.level [ ]
+                    [ Level.item [ Level.Item.HasTextCentered ]
+                        [ div [ ]
+                            [ Level.heading [ ] [ str "Target" ]
+                              Level.title [ ] [ str <| user.target.ToString() ] ] ]
+                      Level.item [ Level.Item.HasTextCentered ]
+                        [ div [ classList [ "exceed-target", currentCalories >= user.target] ]
+                            [ Level.heading [ ] [ str "Current" ]
+                              Level.title [ ] [ str <| currentCalories.ToString() ] ] ]
                     ]
                 ]
-        | SummaryData data ->
-            summaryData user data
+        | SummaryData data -> SummaryView.view data (SummaryViewMsg >> dispatch)
         | other ->
             span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ]
 
@@ -124,14 +68,16 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
         topNav
         Columns.columns [] [
             Column.column [ Column.Width (Screen.All, Column.Is3); Column.CustomClass "aside hero is-fullheight" ] [
-                div [ ] [
-                    div [ Class "today has-text-centered" ]
-                        [ Button.a [ Button.Color IsDanger; Button.IsFullWidth; Button.Props [ Href hrefToday] ] [ str "Today" ] ]
-                    div [ Class "main" ]
-                        [ a [ Href "/#/"; Class "item active" ]
-                            [ Icon.icon []
-                                [ i [ Class "fa fa-inbox" ] [ ] ]
+                div [ Class "main" ] [
+                      a [ Href "/#/"; Class "item active" ]
+                            [ Icon.icon [] [ Fa.i [ Fa.Solid.CalendarAlt ] [] ]
                               span [ Class "name" ] [ str "Summary" ] ]
-                        ] ] ]            
-            Column.column [ Column.Width(Screen.All, Column.Is9); Column.CustomClass "messages hero is-fullheight"]
+                      a [ Href "/#/"; Class "item active" ]
+                            [ Icon.icon [] [ Fa.i [ Fa.Solid.UserFriends ] [] ]
+                              span [ Class "name" ] [ str "Users" ] ]
+                      ]
+                div [ Class "today" ]
+                        [ Button.a [ Button.Color IsDanger; Button.IsFullWidth; Button.Props [ Href hrefToday] ] [ str "Today" ] ]
+                ]
+            Column.column [ Column.Width(Screen.All, Column.Is9); Column.CustomClass "app-content hero is-fullheight"]
                 [ content ] ] ]

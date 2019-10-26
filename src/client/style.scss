@@ -110,10 +110,8 @@ p {
     border-right: 1px solid #DEDEDE;
 }
 
-.messages {
+.app-content {
     display: block;
-    background-color: #fff;
-    border-right: 1px solid #DEDEDE;
     padding: 0 20px;
 }
 
@@ -125,11 +123,6 @@ p {
 
 .aside .today .button {
     color: #F6F7F7;
-}
-
-.aside .today .button .today {
-    font-size: 14px;
-    font-weight: 700;
 }
 
 .aside .main {
@@ -152,13 +145,6 @@ p {
 
 .aside .main .item.active {
     background-color: #F1F1F1;
-    margin: 0 -50px;
-    padding-left: 50px;
-}
-
-.aside .main .item:active,
-.aside .main .item:hover {
-    background-color: #F2F2F2;
     margin: 0 -50px;
     padding-left: 50px;
 }
@@ -194,7 +180,7 @@ p {
 }
 
 .app-screen-title .target {
-    font-size: large;
+    font-size: medium;
     font-weight: bold;
 }
 .app-screen-title .target div {

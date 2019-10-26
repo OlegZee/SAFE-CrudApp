@@ -45,4 +45,10 @@ let removeEntry (token, apiUrl, record_id: int) : JS.Promise<Result<unit,string>
         try let! result = Fetch.tryDelete(sprintf "%s/%i" apiUrl record_id, "", isCamelCase = false, properties = mkRestRequestProps token)
             return result |> Result.map ignore
         with e -> return Error (string e) }
+
+let saveSettings (token, settings: UserSettings) : JS.Promise<Result<unit,string>> =
+    promise {
+        try let! result = Fetch.tryPut("/api/v1/settings", settings, isCamelCase = false, properties = mkRestRequestProps token)
+            return result |> Result.map ignore
+        with e -> return Error (string e) }
         

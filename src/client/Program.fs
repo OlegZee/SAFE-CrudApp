@@ -5,16 +5,11 @@ open Elmish
 open Elmish.React
 open Elmish.Navigation
 open Fable.React
-open Fable.Core
-open Fetch.Types
-open Thoth.Fetch
 open Fulma
 
 open ServerProtocol.V1
 open ServerComm
 open Router
-
-type SessionInfo = { token: Token; userName: string; userRole: string; target: float }
 
 type Model =
     | Initializing
@@ -45,7 +40,7 @@ let init result : Model * Cmd<Msg> =
     Initializing, toPath LoginScreen |> Navigation.newUrl
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
-    console.log("got update", msg)
+    // console.log("got update", msg)
     match model, msg with
     | LoggingIn model, LoginMsg msg ->
         let nextModel, cmd = Login.State.update msg model
@@ -54,7 +49,7 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
         model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
     | _, LoggedIn (Ok (Token token, user)) ->
-        console.log("initialized app state, nagivate /", msg)
+        // console.log("initialized app state, nagivate /", msg)
         let appModel, cmd = App.State.init (user, token)
         Connected (Token token, appModel),
             Cmd.batch [

@@ -18,6 +18,7 @@
         <Compile Include="EntryForm\View.fs" />
         <Compile Include="App\Types.fs" />
         <Compile Include="App\State.fs" />
+        <Compile Include="App\SummaryView.fs" />
         <Compile Include="App\View.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

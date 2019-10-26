@@ -1,6 +1,5 @@
 module EntryForm.View
 
-open Elmish
 open Fable.React
 open Fable.Core.JsInterop
 open Fable.React.Props
@@ -14,7 +13,7 @@ let recordEntry (r: UserData) dispatch =
         [ td [ Style [ TextAlign TextAlignOptions.Center] ] [ str r.rtime ]
           td [ ] [ str r.meal ]
           td [ Style [ TextAlign TextAlignOptions.Right ] ] [ str <| r.amount.ToString() ]
-          td [] [
+          td [ Style [ TextAlign TextAlignOptions.Center ] ] [
             Button.button [ Button.OnClick (fun _ -> window.alert "Editing is not implemented yet" ) ] [    // FIXME
                 Icon.icon [ Icon.Props [ Title "Edit" ] ] [ Fa.i [ Fa.Solid.Pen ] [] ] ]
             Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> DeleteEntry r.record_id |> dispatch) ] [
@@ -29,11 +28,11 @@ let inputEntry (e: NewEntry, v: Result<CreateUserData,string>) dispatch =
             td [ ] [ Input.text [ Input.Placeholder "meal"; Input.DefaultValue e.meal;  handleChange SetNewMeal ] ]
             td [ ] [ Input.number [ Input.Placeholder "amount"; Input.DefaultValue e.amount; handleChange SetNewAmount ] ]
             td [ Style [ TextAlign TextAlignOptions.Center ] ] [
-                v |> function
-                | Ok _ -> Button.button [ Button.Color IsPrimary; Button.OnClick(fun _ -> dispatch SaveNewEntry) ] [ str "add"]
-                | Error e ->
-                    Icon.icon [ Icon.Size IsMedium; Icon.Modifiers [ Modifier.TextColor IsDanger ]; Icon.Props [ Title e ] ] [ Fa.i [ Fa.Solid.ExclamationTriangle ] [] ]
-                ]
+                let disabled, title = v |> function | Ok _ -> false, "" | Error e -> true, e
+                yield Button.button [
+                    Button.IsFullWidth; Button.Disabled disabled
+                    Button.Props [ Title title ]; Button.Color IsSuccess
+                    Button.OnClick(fun _ -> dispatch SaveNewEntry) ] [ str "Add" ] ]
             ]
   
 let view (model: Model) (dispatch: Msg -> unit) =
