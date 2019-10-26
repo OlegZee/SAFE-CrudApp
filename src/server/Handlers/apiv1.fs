@@ -185,11 +185,14 @@ let private requiresRole roles (handler: HttpHandler) : HttpHandler =
 let handler : HttpHandler =
     choose [
         subRoute "/users" <|
-            requiresRole ["admin"; "manager"] (
-                choose [
-                    route "" >=> GET >=> UsersApi.users
-                    routef "/%i" (fun userId -> GET >=> UsersApi.getUser userId)
-                    subRoutef "/%i/data" usersDataHandler ])
+            choose [
+                requiresRole ["admin"; "manager"] 
+                    (choose [
+                        route "" >=> GET >=> UsersApi.users
+                        routef "/%i" (fun userId -> GET >=> UsersApi.getUser userId) ])
+                requiresRole ["admin"]
+                    (subRoutef "/%i/data" usersDataHandler)
+            ]
         subRoute "/data" <|
             Auth.requiresAuth(fun session -> usersDataHandler session.user_id)
         route "/me" >=> GET >=>
