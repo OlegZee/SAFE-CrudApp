@@ -39,8 +39,7 @@ let update (msg: Msg) (model: Model) =
         { model with data = Loading; newEntry = initNewEntry(); newEntryValid = Error "input incomplete" },
         Cmd.OfPromise.perform retrieveDailyData (model.token, model.apiUrl) ReceivedData
     | ReceivedData (Ok data) ->
-        let records = data |> List.map Unchanged
-        { model with data = Data records }, Cmd.none
+        { model with data = Data data }, Cmd.none
 
     | SetNewTime t -> { model with newEntry = { model.newEntry with time = t}}, Cmd.ofMsg ValidateNewEntry
     | SetNewMeal m -> { model with newEntry = { model.newEntry with meal = m}}, Cmd.ofMsg ValidateNewEntry
@@ -54,6 +53,10 @@ let update (msg: Msg) (model: Model) =
         | _ ->
             console.warn ("should not get here as the data is not validated")
             model, Cmd.none
+
+    | DeleteEntry recordId ->
+        console.log("delete", recordId)
+        model, Cmd.OfPromise.perform removeEntry (model.token, model.apiUrl, recordId) (fun _ -> RefreshData)
 
     | _ ->
         model, Cmd.none

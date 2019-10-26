@@ -194,8 +194,11 @@ p {
 }
 
 .app-screen-title .target {
-    float: right;
     font-size: large;
+    font-weight: bold;
+}
+.app-screen-title .target div {
+    text-align: right;
 }
 
 .summary-items .card {

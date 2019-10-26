@@ -5,15 +5,11 @@ open ServerProtocol.V1
 
 [<AutoOpen>]
 module Types =
-    type RecordState<'t> =
-        | Unchanged of 't
-        | Dirty of 't * 't
     type ModelState =
         | Init
         | Loading
-        | Data of RecordState<UserData> list
+        | Data of UserData list
 
-    // FIXME consider new component
     type NewEntry = {
         time: string
         meal: string
@@ -37,4 +33,5 @@ module Types =
         | SetNewAmount of string
         | ValidateNewEntry
         | SaveNewEntry
+        | DeleteEntry of record_id: int
         | ReceivedData of Result<UserData list,string>

@@ -8,6 +8,12 @@ open Fulma
 open App.Types
 open ServerProtocol.V1
 
+let collectUserCalories (m: EntryForm.Types.Model): float =
+    
+    match m.data with
+    | EntryForm.Types.Data records -> records |> List.sumBy (fun { amount = a } -> a)
+    | _ -> 0.0
+
 let topNav =
     Navbar.navbar [ Navbar.HasShadow ]
         [ Container.container []
@@ -88,17 +94,6 @@ let summaryData (user: UserInfo) (data: SummaryData list) =
                   )
         ]
 
-let collectUserCalories (m: EntryForm.Types.Model): float option =
-    
-    let getRecordCalories = function
-        | EntryForm.Types.Unchanged (x: UserData)
-        | EntryForm.Types.Dirty (x,_) -> x.amount
-    match m.data with
-    | EntryForm.Types.Data records ->
-        records |> List.sumBy getRecordCalories |> Some
-    | _ -> None
-
-
 let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
 
     let content =
@@ -106,17 +101,18 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
         | NoView -> 
             strong [ ] [ str "Loading data..." ]
         | DayView x ->
-            let bkStyle =
-                match collectUserCalories x with
-                | Some x when x >= user.target -> [ BackgroundColor "#FFcec8" ]
-                | _ -> []
+            let currentCalories = collectUserCalories x
+            let bkStyle = if currentCalories >= user.target then [ BackgroundColor "#FFcec8" ] else []
 
-            div [ Class "app-screen-title"; Style bkStyle ]
-              [ Heading.h2 [] [
-                    str user.userName;
-                    Text.span [ CustomClass "target"] [ str "target "; str <| user.target.ToString()] ]
+            div [ Class "app-screen-title" ]
+              [ Heading.h2 [] [ str user.userName ]
                 Heading.h3 [] [ str <| x.date.ToShortDateString() ]
                 EntryForm.View.view x (DayViewMsg >> dispatch)
+                div [ Style bkStyle ] [
+                    div [ Class "target" ] [
+                        div [ ] [ str "Target: "; str <| user.target.ToString()] 
+                        div [ ] [ str "Current: "; str <| currentCalories.ToString()] ]
+                    ]
                 ]
         | SummaryData data ->
             summaryData user data
