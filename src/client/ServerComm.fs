@@ -6,8 +6,24 @@ open Thoth.Fetch
 
 open ServerProtocol.V1
 
-let mkRestRequestProps (token) =
+[<Erase>]
+type Token = Token of string
+
+let mkRestRequestProps (Token token) =
     [Fetch.requestHeaders [ ContentType "application/json"; Authorization ("Bearer " + token) ] ]
+
+let loginServer (login, pwd) : JS.Promise<Result<Token*User,string>> =
+    promise {        
+        let request = { login = login; pwd = pwd }
+        try
+            let! (loginResponse: Result<LoginResult,string>) = Fetch.tryPost("/api/login", request, isCamelCase = false)
+            match loginResponse with
+            | Ok { token = token } ->
+                let! user = Fetch.tryFetchAs<User> ("/api/v1/me", mkRestRequestProps (Token token))
+                return user |> Result.map(fun u -> (Token token, u))
+            | Error e ->
+                return Error e
+        with e -> return (Error (string e)) }    
 
 let retrieveSummary token : JS.Promise<Result<SummaryData list,string>> =
     promise {
@@ -17,4 +33,9 @@ let retrieveSummary token : JS.Promise<Result<SummaryData list,string>> =
 let retrieveDailyData (token, apiUrl) : JS.Promise<Result<UserData list,string>> =
     promise {
         try return! Fetch.tryFetchAs<UserData list>(apiUrl, isCamelCase = false, properties = mkRestRequestProps token)
+        with e -> return Error (string e) }
+
+let addNewEntry (token, apiUrl, data: CreateUserData) : JS.Promise<Result<UserCreated,string>> =
+    promise {
+        try return! Fetch.tryPost(apiUrl, data, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }

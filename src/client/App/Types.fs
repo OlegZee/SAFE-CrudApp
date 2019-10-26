@@ -1,7 +1,7 @@
 module App.Types
 open ServerProtocol.V1
 
-type UserInfo = { token: string; userName: string; userRole: string; target: float }
+type UserInfo = { token: ServerComm.Token; userName: string; userRole: string; target: float }
 
 type AppView =
     | NoView

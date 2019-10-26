@@ -11,10 +11,8 @@ open Thoth.Fetch
 open Fulma
 
 open ServerProtocol.V1
+open ServerComm
 open Router
-
-[<Erase>]
-type Token = Token of string
 
 type SessionInfo = { token: Token; userName: string; userRole: string; target: float }
 
@@ -28,22 +26,6 @@ type Msg =
     | AppMsg of App.Types.Msg
     | ProcessLogin of Login.Types.ParentMsg
     | LoggedIn of Result<Token*User,string>
-
-let mkRestRequestProps (Token token) =
-    [Fetch.requestHeaders [ ContentType "application/json"; Authorization ("Bearer " + token) ] ]
-    
-let loginServer (login, pwd) : JS.Promise<Result<Token*User,string>> =
-    promise {        
-        let request = { login = login; pwd = pwd }
-        try
-            let! (loginResponse: Result<LoginResult,string>) = Fetch.tryPost("/api/login", request, isCamelCase = false)
-            match loginResponse with
-            | Ok { token = token } ->
-                let! user = Fetch.tryFetchAs<User> ("/api/v1/me", mkRestRequestProps (Token token))
-                return user |> Result.map(fun u -> (Token token, u))
-            | Error e ->
-                return Error e
-        with e -> return (Error (string e)) }
 
 let urlUpdate (page: Option<Page>) (model: Model) =
     console.log ("urlupdate", page)

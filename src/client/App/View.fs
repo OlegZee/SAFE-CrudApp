@@ -88,17 +88,36 @@ let summaryData (user: UserInfo) (data: SummaryData list) =
                   )
         ]
 
+let collectUserCalories (m: EntryForm.Types.Model): float option =
+    
+    let getRecordCalories = function
+        | EntryForm.Types.Unchanged (x: UserData)
+        | EntryForm.Types.Dirty (x,_) -> x.amount
+    match m.data with
+    | EntryForm.Types.Data records ->
+        records |> List.sumBy getRecordCalories |> Some
+    | _ -> None
+
+
 let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
 
     let content =
         match appview with
         | NoView -> 
             strong [ ] [ str "Loading data..." ]
-        | DayView x -> 
-            div [ Class "app-screen-title" ]
-              [ Heading.h2 [] [ str user.userName ]
+        | DayView x ->
+            let bkStyle =
+                match collectUserCalories x with
+                | Some x when x >= user.target -> [ BackgroundColor "#FFcec8" ]
+                | _ -> []
+
+            div [ Class "app-screen-title"; Style bkStyle ]
+              [ Heading.h2 [] [
+                    str user.userName;
+                    Text.span [ CustomClass "target"] [ str "target "; str <| user.target.ToString()] ]
                 Heading.h3 [] [ str <| x.date.ToShortDateString() ]
-                EntryForm.View.view x dispatch ]
+                EntryForm.View.view x (DayViewMsg >> dispatch)
+                ]
         | SummaryData data ->
             summaryData user data
         | other ->

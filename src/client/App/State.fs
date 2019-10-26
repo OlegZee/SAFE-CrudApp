@@ -5,10 +5,11 @@ open Browser.Dom
 
 open Types
 open ServerProtocol.V1
+open ServerComm
 
 let init (user: User, token: string) =
     let userInfo: UserInfo = {
-        token = token
+        token = Token token
         userName = user.name; userRole = user.role; target = user.targetCalories }
     Model (userInfo, NoView), Cmd.none
 
@@ -34,7 +35,7 @@ let update (msg: Msg) (Model (user, appView) as model) =
             model, Cmd.none
 
 let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
-    console.log("app url updata", page)
+    //  console.log("app url update", page)
     match page with
     | Some Router.Home ->
         let retrieveSummaryCmd = Cmd.OfPromise.perform ServerComm.retrieveSummary user.token ReceivedUserSummary
