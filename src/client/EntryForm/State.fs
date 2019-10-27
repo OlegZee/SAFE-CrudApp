@@ -12,7 +12,7 @@ let initNewEntry ( ): NewEntry =
         meal = ""
         amount = "" }
 
-let validateEntry (d: NewEntry) : Result<CreateUserData,string> =
+let validateEntry (d: NewEntry) : Result<PostDataPayload,string> =
     // TODO fable-validate for nicer validation rules
     match TimeSpan.TryParse d.time, d.meal, Double.TryParse d.amount with
     | (true, time), meal, (true, amount) when (not <| String.IsNullOrWhiteSpace meal) && amount > 0.0 && amount < 1000.0 ->

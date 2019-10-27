@@ -35,7 +35,7 @@ let retrieveDailyData (token, apiUrl) : JS.Promise<Result<UserData list,string>>
         try return! Fetch.tryFetchAs<UserData list>(apiUrl, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
 
-let addNewEntry (token, apiUrl, data: CreateUserData) : JS.Promise<Result<UserRecordCreated,string>> =
+let addNewEntry (token, apiUrl, data: PostDataPayload) : JS.Promise<Result<PostDataResponse,string>> =
     promise {
         try return! Fetch.tryPost(apiUrl, data, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
@@ -57,7 +57,7 @@ let retrieveUsers (token) : JS.Promise<Result<User list,string>> =
         try return! Fetch.tryFetchAs<User list>("/api/v1/users", isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
         
-let addNewUser (token, data: CreateUserInfo) : JS.Promise<Result<UserCreatedResponse,string>> =
+let addNewUser (token, data: CreateUserPayload) : JS.Promise<Result<CreateUserResponse,string>> =
     promise {
         try return! Fetch.tryPost("/api/v1/users", data, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }

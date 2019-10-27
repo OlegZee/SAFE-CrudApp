@@ -33,7 +33,7 @@ module private Implementation =
     let login : HttpHandler =
         fun next ctx -> task {
             let protector = ctx.GetService<IDataProtectionProvider>().CreateProtector("login")
-            let! loginData = ctx.BindJsonAsync<LoginData>()
+            let! loginData = ctx.BindJsonAsync<LoginPayload>()
             let pwdHash = CryptoHelpers.calculateHash loginData.pwd
 
             match query

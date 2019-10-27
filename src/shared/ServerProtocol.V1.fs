@@ -22,26 +22,20 @@ type UserData = {
     amount: float
 }
 
-type CreateUserData = {
+type PostDataPayload = {
     rtime: string
     meal: string
     amount: float
 }
 
-type UpdUserData = {
-    rtime: string
-    meal: string
-    amount: float
-}
-
-type UserRecordCreated = {
+type PostDataResponse = {
     record_id: int
 }
 
 
 // Auth related payloads
 
-type LoginData = {
+type LoginPayload = {
     login: string
     pwd: string
 }
@@ -67,7 +61,7 @@ type UserSettings = {
     targetCalories: float
 }
 
-type CreateUserInfo = {
+type CreateUserPayload = {
     login: string
     pwd: string
     name: string
@@ -76,6 +70,6 @@ type CreateUserInfo = {
     targetCalories: float
 }
 
-type UserCreatedResponse = {
+type CreateUserResponse = {
     user_id: int
 }

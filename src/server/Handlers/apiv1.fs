@@ -51,7 +51,7 @@ module private UsersApi =
     let createUser : HttpHandler =
         fun next ctx ->
             task {
-                let! info = ctx.BindJsonAsync<CreateUserInfo>()
+                let! info = ctx.BindJsonAsync<CreateUserPayload>()
                 // FIXME case insensitive
                 let isExistingUser = query { for record in dataCtx.Public.Users do exists (record.Login = info.login) }
 
@@ -125,7 +125,7 @@ module UserInputApi =
                 RequestErrors.NOT_FOUND "Not Found" next ctx
             else
                 task {
-                    let! newData = ctx.BindJsonAsync<CreateUserData>()
+                    let! newData = ctx.BindJsonAsync<PostDataPayload>()
                     let record = dataCtx.Public.Calories.Create()
                     // TODO validate data
                     record.UserId <- userId
@@ -146,7 +146,7 @@ module UserInputApi =
                 select (Some c)
                 exactlyOneOrDefault
             }
-            let! newData = ctx.BindJsonAsync<UpdUserData>()
+            let! newData = ctx.BindJsonAsync<PostDataPayload>()
 
             return!
                 match foundRecordMaybe with

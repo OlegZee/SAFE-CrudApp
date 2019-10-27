@@ -25,5 +25,5 @@ module TabularFormTypes =
 
 open ServerProtocol.V1
 
-type Model = TabularFormTypes.Model<User, CreateUserInfo>
+type Model = TabularFormTypes.Model<User, CreateUserPayload>
 type Msg = TabularFormTypes.Msg<User>

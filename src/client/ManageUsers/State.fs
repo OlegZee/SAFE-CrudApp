@@ -65,12 +65,12 @@ let private validateEntry (map: Map<string,string>) =
     | _, _, NoneOrBlank _ -> Error "password is not specified"
     | Some login, Some name, Some pwd ->
         let role = map |> Map.tryFind "role" |> Option.defaultValue "user"
-        Ok ({ login = login; pwd = pwd; role = role; name = name; targetCalories = 0.0 }:CreateUserInfo)
+        Ok ({ login = login; pwd = pwd; role = role; name = name; targetCalories = 0.0 }:CreateUserPayload)
     | _ ->
         Error "Some data is missing"
 
 let private retrieveUsers (model: Model) = ServerComm.retrieveUsers (model.token)
-let private addNewUser (model: Model, data: CreateUserInfo) = ServerComm.addNewUser (model.token, data)
+let private addNewUser (model: Model, data: CreateUserPayload) = ServerComm.addNewUser (model.token, data)
 let private removeUser (model: Model, rec_id: int) = ServerComm.removeUser (model.token, rec_id)
 
 let update: Msg -> Model -> Model * Cmd<Msg> =

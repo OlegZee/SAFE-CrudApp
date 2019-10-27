@@ -11,7 +11,7 @@ open ManageUsers.Types
 open ServerProtocol.V1
 open Fable.FontAwesome
 
-let inputEntry (e: Map<string,string>, v: Result<CreateUserInfo,string>) dispatch =
+let inputEntry (e: Map<string,string>, v: Result<CreateUserPayload,string>) dispatch =
     let handleChange (field: string) =
         Input.OnChange (fun e -> TabularFormTypes.SetNewField (field, !!e.target?value) |> dispatch)
     let pickField name = e |> Map.tryFind name |> Option.defaultValue ""

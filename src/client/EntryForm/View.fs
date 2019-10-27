@@ -20,7 +20,7 @@ let recordEntry (r: UserData) dispatch =
                 Icon.icon [ Icon.Props [ Title "Remove" ] ] [ Fa.i [ Fa.Solid.Trash ] [] ] ]
           ] ]
 
-let inputEntry (e: NewEntry, v: Result<CreateUserData,string>) dispatch =
+let inputEntry (e: NewEntry, v: Result<PostDataPayload,string>) dispatch =
     let handleChange (msg: string -> Msg) =
         Input.OnChange (fun e -> !!e.target?value |> msg |> dispatch)
     tr  [ ]

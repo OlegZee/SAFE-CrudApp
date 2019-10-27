@@ -21,7 +21,7 @@ module Types =
         apiUrl: string
         data: ModelState
         newEntry: NewEntry
-        newEntryValid: Result<CreateUserData,string>
+        newEntryValid: Result<PostDataPayload,string>
     }
     type Msg =
         | RefreshData
