@@ -55,6 +55,12 @@ type WhoResult = {
     name: string
 }
 
+type SignupPayload = {
+    login: string
+    name: string
+    pwd: string
+}
+
 // Settings
 
 type UserSettings = {

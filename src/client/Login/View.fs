@@ -57,7 +57,7 @@ let view (model : Model) (dispatchParent: ParentMsg -> unit) =
                       Button.OnClick loginBtnHandler ]
                     [ str "Login" ] ] ]
           Text.p [ Modifiers [ Modifier.TextColor IsGrey ] ]
-            [ a [ ] [ str "Sign Up" ]
+            [ a [ Href <| Router.toPath Router.SignupScreen ] [ str "Sign Up" ]
               str "\u00A0·\u00A0"
               a [ ] [ str "Forgot Password" ] ]
           br [ ]

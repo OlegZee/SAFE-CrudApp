@@ -25,6 +25,15 @@ let loginServer (login, pwd) : JS.Promise<Result<Token*User,string>> =
                 return Error e
         with e -> return (Error (string e)) }    
 
+let signup (request: SignupPayload) : JS.Promise<Result<Token*User,string>> =
+    promise {        
+        try
+            let! (loginResponse: Result<CreateUserResponse,string>) = Fetch.tryPost("/api/signup", request, isCamelCase = false)
+            match loginResponse with
+            | Ok _ ->    return! loginServer (request.login, request.pwd)
+            | Error e -> return Error e
+        with e -> return (Error (string e)) }
+
 let retrieveSummary token : JS.Promise<Result<SummaryData list,string>> =
     promise {
         try return! Fetch.tryFetchAs<SummaryData list>("/api/v1/data", isCamelCase = false, properties = mkRestRequestProps token)

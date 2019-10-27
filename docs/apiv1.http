@@ -97,6 +97,17 @@ content-type: application/json
     "pwd": "manager"
 }
 
+### Signup (login as manager)
+
+POST {{endpoint}}/api/signup HTTP/1.1
+content-type: application/json
+
+{
+    "login": "test3",
+    "name": "Test 3",
+    "pwd": "123"
+}
+
 ### Create a new user
 
 POST {{endpoint}}/api/v1/users HTTP/1.1

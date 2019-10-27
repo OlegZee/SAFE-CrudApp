@@ -17,6 +17,8 @@ type SessionData = {
 
 module private Implementation =
 
+    let isEmpty = System.String.IsNullOrWhiteSpace
+
     let requiresAuth handler : HttpHandler =
         fun (next : HttpFunc) ctx ->
             let protector = ctx.GetService<IDataProtectionProvider>().CreateProtector("login")
@@ -51,6 +53,31 @@ module private Implementation =
                 return! RequestErrors.FORBIDDEN "Not Found" next ctx
 
         }
+
+    let signup : HttpHandler =
+        fun next ctx ->
+            task {
+                let! info = ctx.BindJsonAsync<SignupPayload>()
+                // FIXME case insensitive
+                let isExistingUser = query { for record in dataCtx.Public.Users do exists (record.Login = info.login) }
+
+                if isExistingUser then
+                    return! RequestErrors.CONFLICT {| error = "User with such login already exists" |} next ctx
+                else if isEmpty info.login || isEmpty info.name then
+                    return! RequestErrors.FORBIDDEN {| error = "Name and login cannot be empty" |} next ctx
+                else
+                    let record = dataCtx.Public.Users.Create()
+                    record.Login <- info.login
+                    record.Name <- info.name
+                    record.Role <- Some "user"
+                    record.TargetCalories <- Some (decimal 0)
+                    record.Pwdhash <- CryptoHelpers.calculateHash info.pwd
+
+                    do! dataCtx.SubmitUpdatesAsync()
+
+                    return! Successful.CREATED ({ user_id = record.Id }) next ctx
+            }
+
 
     let who : HttpHandler =
         requiresAuth(fun session ->
@@ -90,6 +117,7 @@ let requiresAuth = Implementation.requiresAuth
 let handler : HttpHandler =
     choose [
         route "/api/login" >=> POST >=> login
+        route "/api/signup" >=> POST >=> signup
         route "/api/who" >=> GET >=> who
         route "/api/chpass" >=> POST >=> changePwd
     ]

@@ -6,6 +6,7 @@ type Page =
     | Home      // routes to overview page
     | DailyView of System.DateTime
     | LoginScreen
+    | SignupScreen
     | ManageUsers
     | UserOverview of int
     | UserCaloriesInput of int * System.DateTime
@@ -14,6 +15,7 @@ let toPath = function
     | Home -> "#/"
     | DailyView day -> "#/data/" + day.ToString("yyyy-MM-dd")
     | LoginScreen -> "#/login"
+    | SignupScreen -> "#/signup"
     | ManageUsers -> "#/users"
     | UserOverview userId -> sprintf "#/users/%i" userId
     | UserCaloriesInput (userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-MM-dd"))
@@ -30,6 +32,7 @@ let pageParser : Parser<Page->_,Page> =
         map Home (s "")
         map DailyView (s "data" </> dt)
         map LoginScreen (s "login")
+        map SignupScreen (s "signup")
         map ManageUsers (s "users")
         map UserOverview (s "users" </> i32)
         map (fun u d -> UserCaloriesInput(u,d)) (s "users" </> i32 </> s "data" </> dt ) ]
