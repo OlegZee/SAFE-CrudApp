@@ -43,6 +43,51 @@ module private UsersApi =
             | Some user -> ctx.WriteJsonAsync user
             | _ ->         RequestErrors.NOT_FOUND "Not Found" next ctx
 
+    let validateRole role =
+        match role with
+        | "user" | "admin" | "manager" -> Some role
+        | _ -> None
+            
+    let createUser : HttpHandler =
+        fun next ctx ->
+            task {
+                let! info = ctx.BindJsonAsync<CreateUserInfo>()
+                // FIXME case insensitive
+                let isExistingUser = query { for record in dataCtx.Public.Users do exists (record.Login = info.login) }
+
+                if isExistingUser then
+                    return! RequestErrors.CONFLICT "User with such login already exists" next ctx
+                else
+                    let record = dataCtx.Public.Users.Create()
+                    // TODO validate data
+                    record.Login <- info.login
+                    record.Name <- info.name
+                    record.Role <- info.role |> validateRole
+                    record.TargetCalories <- Some (decimal info.targetCalories)
+                    record.Pwdhash <- CryptoHelpers.calculateHash info.pwd
+
+                    do! dataCtx.SubmitUpdatesAsync()
+
+                    return! Successful.CREATED ({ user_id = record.Id }) next ctx
+            }
+
+    let deleteUser userId  : HttpHandler =
+        fun next ctx ->
+            let reportDbError text = RequestErrors.CONFLICT {| error = text |} next ctx
+            task {
+                let deleteQuery = query { for c in dataCtx.Public.Users do where (c.Id = userId) }
+                let resultCode = 
+                    match deleteQuery |> Seq.tryHead with
+                    | Some _ -> Successful.NO_CONTENT | _ -> RequestErrors.NOT_FOUND ""
+                try
+                    let! _ = deleteQuery |> Sql.Seq.``delete all items from single table``
+                    return! resultCode next ctx
+                with
+                    | :? AggregateException as e -> return! reportDbError e.InnerException.Message
+                    | e -> return! reportDbError e.Message
+            }
+            
+module UserInputApi =
     // returns SummaryData
     let getUserSummary (userId: int): HttpHandler =
         fun next ctx ->
@@ -122,7 +167,6 @@ module private UsersApi =
                     RequestErrors.NOT_FOUND "Not Found"  next ctx
         }
 
-            
     let deleteUserData userId (y, m, d, recordId) : HttpHandler =
         let rdate = DateTime(y, m, d)
         fun next ctx ->
@@ -170,11 +214,11 @@ module SettingsApi =
             
 let private usersDataHandler userId : HttpHandler =
     choose [
-        GET >=> route "" >=> UsersApi.getUserSummary userId
-        GET >=> routef "/%i-%i-%i" (UsersApi.getUserDataAt userId)
-        POST >=> routef "/%i-%i-%i" (UsersApi.postUserData userId)
-        DELETE >=> routef "/%i-%i-%i/%i" (UsersApi.deleteUserData userId)
-        PUT >=> routef "/%i-%i-%i/%i" (UsersApi.putUserData userId)
+        GET >=> route "" >=> UserInputApi.getUserSummary userId
+        GET >=> routef "/%i-%i-%i" (UserInputApi.getUserDataAt userId)
+        POST >=> routef "/%i-%i-%i" (UserInputApi.postUserData userId)
+        DELETE >=> routef "/%i-%i-%i/%i" (UserInputApi.deleteUserData userId)
+        PUT >=> routef "/%i-%i-%i/%i" (UserInputApi.putUserData userId)
     ]
 
 let private requiresRole roles (handler: HttpHandler) : HttpHandler =
@@ -189,7 +233,9 @@ let handler : HttpHandler =
                 requiresRole ["admin"; "manager"] 
                     (choose [
                         route "" >=> GET >=> UsersApi.users
-                        routef "/%i" (fun userId -> GET >=> UsersApi.getUser userId) ])
+                        route "" >=> POST >=> UsersApi.createUser
+                        GET >=> routef "/%i" UsersApi.getUser
+                        DELETE >=> routef "/%i" UsersApi.deleteUser ])
                 requiresRole ["admin"]
                     (subRoutef "/%i/data" usersDataHandler)
             ]

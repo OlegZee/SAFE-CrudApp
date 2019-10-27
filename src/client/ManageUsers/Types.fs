@@ -11,9 +11,11 @@ module TabularFormTypes =
         data: 'trec ModelState
         newEntry: Map<string,string>
         newEntryValid: Result<'tnewrec,string>
+        lastError: string option
     }
     type Msg<'trec> =
         | RefreshData
+        | SetLastError of string option
         | SaveChanges
         | SetNewField of string * string
         | ValidateNewEntry

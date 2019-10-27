@@ -65,6 +65,9 @@ let addNewUser (token, data: CreateUserInfo) : JS.Promise<Result<UserCreatedResp
 let removeUser (token, record_id: int) : JS.Promise<Result<unit,string>> =
     promise {
         try let! result = Fetch.tryDelete(sprintf "/api/v1/users/%i" record_id, "", isCamelCase = false, properties = mkRestRequestProps token)
+            Browser.Dom.console.log("remove result", result)
             return result |> Result.map ignore
-        with e -> return Error (string e) }
+        with e ->
+            Browser.Dom.console.log("remove result error", e)
+            return Error (string e) }
         

@@ -39,20 +39,27 @@ let private recordEntry (r: User) dispatch =
 let view (model: Model) (dispatch: Msg -> unit) =
     match model.data with
     | TabularFormTypes.ModelState.Data entries ->
-        Table.table [ Table.IsBordered
-                      Table.IsFullWidth
-                      Table.IsStriped ]
-            [ thead [ ]
-                [ tr [ ]
-                     [ th [ ] [ str "Id" ]
-                       th [ ] [ str "Login" ]
-                       th [ ] [ str "Name" ]
-                       th [ ] [ str "Actions" ] ] ]
-              tbody [ ]
-                [
-                    yield! (entries |> List.map (fun r -> recordEntry r dispatch))
-                    // yield inputEntry (model.newEntry, model.newEntryValid) dispatch
-                ]
-            ]
+        div [] [
+            yield Table.table [ Table.IsBordered; Table.IsFullWidth; Table.IsStriped ] [
+                thead [ ]
+                    [ tr [ ]
+                         [ th [ ] [ str "Id" ]
+                           th [ ] [ str "Login" ]
+                           th [ ] [ str "Name" ]
+                           th [ ] [ str "Actions" ] ] ]
+                tbody [ ]
+                    [
+                        yield! (entries |> List.map (fun r -> recordEntry r dispatch))
+                        // yield inputEntry (model.newEntry, model.newEntryValid) dispatch
+                    ] ]
+
+            match model.lastError with
+            | Some e ->
+                yield Notification.notification [ Notification.Color IsDanger ]
+                        [ Notification.delete [ Props [ OnClick (fun _ -> dispatch (TabularFormTypes.SetLastError None)) ] ] [ ]
+                          str e ]
+            | _ -> yield! []
+        
+        ]
     | _ ->
         div [] [ str "Loading data"]

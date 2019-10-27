@@ -12,31 +12,39 @@ module TabularForms =
         { apiUrl = apiUrl; token = token
           data = Init
           newEntry = initNewEntry ()
-          newEntryValid = Error "input incomplete" }, Cmd.ofMsg RefreshData
+          newEntryValid = Error "input incomplete"
+          lastError = None }, Cmd.ofMsg RefreshData
 
     let update (retrieveData,validateEntry,addNewEntry,removeEntry) (msg: Msg<'tr>) (model: Model<'tr,'tnew>) =
+        
+        let respondRestApiResult = function |Ok _ -> RefreshData | Error e -> SetLastError (Some e)
         match msg with
         | RefreshData ->
             { model with data = Loading; newEntry = initNewEntry(); newEntryValid = Error "input incomplete" },
             Cmd.OfPromise.perform retrieveData model ReceivedData
         | ReceivedData (Ok data) ->
-            { model with data = Data data }, Cmd.none
+            { model with data = Data data; lastError = None }, Cmd.none
     
         | SetNewField (field, value) ->        
             { model with newEntry = model.newEntry |> Map.add field value }, Cmd.ofMsg ValidateNewEntry
-        | ValidateNewEntry -> { model with newEntryValid = validateEntry model.newEntry }, Cmd.none
+        | ValidateNewEntry ->
+            { model with newEntryValid = validateEntry model.newEntry }, Cmd.none
+
+        | SetLastError x ->
+            { model with lastError = x }, Cmd.none
     
         | SaveNewEntry ->
             match model.newEntryValid with
             | Ok newEntry ->
-                model, Cmd.OfPromise.perform addNewEntry (model, newEntry) (fun _ -> RefreshData)   // ignoring create result
+                model, Cmd.OfPromise.perform addNewEntry (model, newEntry) respondRestApiResult
             | _ ->
                 console.warn ("should not get here as the data is not validated")
                 model, Cmd.none
     
         | DeleteEntry recordId ->
-            console.log("delete", recordId)
-            model, Cmd.OfPromise.perform removeEntry (model, recordId) (fun _ -> RefreshData)
+            model, Cmd.OfPromise.perform removeEntry (model, recordId) (
+                function |Ok _ -> RefreshData | Error e -> SetLastError (Some <| sprintf "Failed to remove user (%s)" e)
+            )
     
         | _ ->
             model, Cmd.none
@@ -48,7 +56,7 @@ let init (apiUrl, token) : Model * Cmd<Msg> =
     TabularForms.init (apiUrl, token)
 
 let private validateEntry map =
-    Result.Error "validate not implemented"
+    Error "validate not implemented"
 
 let private retrieveUsers (model: Model) = ServerComm.retrieveUsers (model.token)
 let private addNewUser (model: Model, data: CreateUserInfo) = ServerComm.addNewUser (model.token, data)
