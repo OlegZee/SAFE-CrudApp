@@ -16,8 +16,9 @@ type PostgreSqlCalories =
 
 let dataCtx = PostgreSqlCalories.GetDataContext()
 
-let private initializeDb () =
+let initializeDb () =
         
+    printfn "Checking database initialization is required"
     let isEmptyDatabase = not <| query { for _ in dataCtx.Public.Users do exists(true) }
 
     if isEmptyDatabase then

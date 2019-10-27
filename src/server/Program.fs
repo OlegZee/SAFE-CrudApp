@@ -43,6 +43,9 @@ let configureLogging (builder : ILoggingBuilder) =
 
 [<EntryPoint>]
 let main _ =
+
+    DataAccess.initializeDb()
+    
     WebHostBuilder()
         .UseKestrel()
         .UseContentRoot(publicPath)

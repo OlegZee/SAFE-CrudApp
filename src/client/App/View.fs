@@ -15,10 +15,11 @@ let collectUserCalories (m: EntryForm.Types.Model): float =
     | _ -> 0.0
 
 let topNav =
+    let homePath = Router.toPath Router.Home
     Navbar.navbar [ Navbar.HasShadow ]
         [ Container.container []
             [ Navbar.Brand.div []
-                [ Navbar.Item.a [ Navbar.Item.Props [ Href "/#/"] ]
+                [ Navbar.Item.a [ Navbar.Item.Props [ Href homePath] ]
                     [ img [ Src "http://bulma.io/images/bulma-logo.png"
                             Alt "Bulma: a modern CSS framework based on Flexbox" ] ]
                   Navbar.burger []
@@ -30,7 +31,7 @@ let topNav =
                 [ Navbar.Item.div [ Navbar.Item.HasDropdown; Navbar.Item.IsHoverable ]
                     [ Navbar.Link.a [] [ str "Account" ]
                       Navbar.Dropdown.div []
-                        [ Navbar.Item.a [ Navbar.Item.Props [ Href "/#/"] ] [ str "Home" ]
+                        [ Navbar.Item.a [ Navbar.Item.Props [ Href homePath] ] [ str "Home" ]
                           Navbar.divider [] []
                           Navbar.Item.a [ Navbar.Item.Props [ Href <| Router.toPath Router.LoginScreen ] ] [ str "Logout" ]
                           ] ] ] ] ]
@@ -84,7 +85,7 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
             Column.column [ Column.Width (Screen.All, Column.Is3); Column.CustomClass "aside hero is-fullheight" ] [
                 let hrefToday = Router.toPath (Router.DailyView <| System.DateTime.Now)
                 yield div [ Class "main" ] [
-                      a [ Href "/#/"; Class "item active" ]
+                      a [ Href <| Router.toPath Router.Home; Class "item active" ]
                             [ Icon.icon [] [ Fa.i [ Fa.Solid.CalendarAlt ] [] ]
                               span [ Class "name" ] [ str "Summary" ] ]
                       a [ Href hrefToday; Class "item active" ]
