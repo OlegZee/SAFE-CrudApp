@@ -50,16 +50,13 @@ open Fable.FontAwesome
 
 let view ({user = user; data = data } as model) dispatch =
 
-    // console.log("data", data)
-
     let now = System.DateTime.Now
     let firstDay = System.DateTime(now.Year, now.Month, 1)
     let lastDay = (firstDay.AddMonths 1).AddDays(-1.0)
     let days =
         [   for day in 1..lastDay.Day do
-            let date = System.DateTime(now.Year, now.Month, day).Date
-            let dayData = data |> List.tryFind (fun d -> d.rdate.Year = date.Year && d.rdate.Month = date.Month && d.rdate.Day = date.Day)
-            // console.log("daydata", date, dayData)
+            let date = System.DateTime(now.Year, now.Month, day)
+            let dayData = data |> List.tryFind (fun d -> d.rdate.ToLocalTime() = date)
             yield date, dayData ]
 
     let blanks x = List.init x (fun _ -> None)
