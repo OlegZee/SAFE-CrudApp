@@ -16,6 +16,9 @@
         <Compile Include="EntryForm\Types.fs" />
         <Compile Include="EntryForm\State.fs" />
         <Compile Include="EntryForm\View.fs" />
+        <Compile Include="ManageUsers\Types.fs" />
+        <Compile Include="ManageUsers\State.fs" />
+        <Compile Include="ManageUsers\View.fs" />
         <Compile Include="App\Types.fs" />
         <Compile Include="App\State.fs" />
         <Compile Include="App\SummaryView.fs" />

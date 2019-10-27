@@ -19,11 +19,9 @@ module Types =
     type Model = {
         token: ServerComm.Token
         apiUrl: string
-        date: DateTime
         data: ModelState
         newEntry: NewEntry
         newEntryValid: Result<CreateUserData,string>
-        lastUpdate: Result<unit,string>
     }
     type Msg =
         | RefreshData

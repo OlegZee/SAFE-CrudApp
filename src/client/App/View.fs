@@ -41,12 +41,12 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
         match appview with
         | NoView -> 
             strong [ ] [ str "Loading data..." ]
-        | DayView x ->
+        | DayView (date, x) ->
             let currentCalories = collectUserCalories x
 
             div [ Class "app-screen-title" ]
               [ Heading.h2 [] [ str user.userName ]
-                Heading.h3 [] [ str <| x.date.ToShortDateString() ]
+                Heading.h3 [] [ str <| date.ToShortDateString() ]
                 EntryForm.View.view x (DayViewMsg >> dispatch)
                 Level.level [ ]
                     [ Level.item [ Level.Item.HasTextCentered ]
@@ -59,25 +59,49 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
                               Level.title [ ] [ str <| currentCalories.ToString() ] ] ]
                     ]
                 ]
-        | SummaryData data -> SummaryView.view data (SummaryViewMsg >> dispatch)
+        | SummaryData data ->
+            let now = System.DateTime.Now
+            let monthNames = [|
+                "January"; "February"; "March"; "April"; "May"; "June"; "July"
+                "August"; "September"; "October"; "November"; "December"
+              |]
+    
+            div [ Class "app-screen-title" ]
+                [   Heading.h2 [] [ str <| user.userName ]
+                    Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
+                    SummaryView.view data (SummaryViewMsg >> dispatch) ]
+            
+        | ManageUsers data ->
+            div [ Class "app-screen-title" ]
+                [   Heading.h2 [] [ str "Manage users" ]
+                    ManageUsers.View.view data (ManageUsersMsg >> dispatch) ]
         | other ->
             span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ]
 
-    let hrefToday = Router.toPath (Router.DailyView <| System.DateTime.Now)
     div [] [
         topNav
         Columns.columns [] [
             Column.column [ Column.Width (Screen.All, Column.Is3); Column.CustomClass "aside hero is-fullheight" ] [
-                div [ Class "main" ] [
+                let hrefToday = Router.toPath (Router.DailyView <| System.DateTime.Now)
+                yield div [ Class "main" ] [
                       a [ Href "/#/"; Class "item active" ]
                             [ Icon.icon [] [ Fa.i [ Fa.Solid.CalendarAlt ] [] ]
                               span [ Class "name" ] [ str "Summary" ] ]
-                      a [ Href "/#/"; Class "item active" ]
+                      a [ Href hrefToday; Class "item active" ]
+                            [ Icon.icon [] [ Fa.i [ Fa.Solid.CalendarDay ] [] ]
+                              span [ Class "name" ] [ str "Today" ] ]
+                      ]
+                yield div [ Class "today" ]
+                        [ Button.a [ Button.Color IsDanger; Button.IsFullWidth; Button.Props [ Href hrefToday] ] [ str "Today" ] ]
+  
+                // admin portion of site follows
+                if user.userRole = "admin" || user.userRole = "manager" then
+                    yield div [ Class "main" ] [
+                        Label.label [] [ str "Admin tools"]
+                        a [ Href (Router.toPath Router.ManageUsers); Class "item active" ]
                             [ Icon.icon [] [ Fa.i [ Fa.Solid.UserFriends ] [] ]
                               span [ Class "name" ] [ str "Users" ] ]
-                      ]
-                div [ Class "today" ]
-                        [ Button.a [ Button.Color IsDanger; Button.IsFullWidth; Button.Props [ Href hrefToday] ] [ str "Today" ] ]
-                ]
+                    ]
+              ]
             Column.column [ Column.Width(Screen.All, Column.Is9); Column.CustomClass "app-content hero is-fullheight"]
                 [ content ] ] ]

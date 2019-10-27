@@ -35,7 +35,7 @@ let retrieveDailyData (token, apiUrl) : JS.Promise<Result<UserData list,string>>
         try return! Fetch.tryFetchAs<UserData list>(apiUrl, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
 
-let addNewEntry (token, apiUrl, data: CreateUserData) : JS.Promise<Result<UserCreated,string>> =
+let addNewEntry (token, apiUrl, data: CreateUserData) : JS.Promise<Result<UserRecordCreated,string>> =
     promise {
         try return! Fetch.tryPost(apiUrl, data, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
@@ -49,6 +49,22 @@ let removeEntry (token, apiUrl, record_id: int) : JS.Promise<Result<unit,string>
 let saveSettings (token, settings: UserSettings) : JS.Promise<Result<unit,string>> =
     promise {
         try let! result = Fetch.tryPut("/api/v1/settings", settings, isCamelCase = false, properties = mkRestRequestProps token)
+            return result |> Result.map ignore
+        with e -> return Error (string e) }
+
+let retrieveUsers (token) : JS.Promise<Result<User list,string>> =
+    promise {
+        try return! Fetch.tryFetchAs<User list>("/api/v1/users", isCamelCase = false, properties = mkRestRequestProps token)
+        with e -> return Error (string e) }
+        
+let addNewUser (token, data: CreateUserInfo) : JS.Promise<Result<UserCreatedResponse,string>> =
+    promise {
+        try return! Fetch.tryPost("/api/v1/users", data, isCamelCase = false, properties = mkRestRequestProps token)
+        with e -> return Error (string e) }
+
+let removeUser (token, record_id: int) : JS.Promise<Result<unit,string>> =
+    promise {
+        try let! result = Fetch.tryDelete(sprintf "/api/v1/users/%i" record_id, "", isCamelCase = false, properties = mkRestRequestProps token)
             return result |> Result.map ignore
         with e -> return Error (string e) }
         

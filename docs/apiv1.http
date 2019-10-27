@@ -97,6 +97,20 @@ content-type: application/json
     "pwd": "manager"
 }
 
+### Create a new user
+
+POST {{endpoint}}/api/v1/users HTTP/1.1
+Authorization: Bearer {{admin_token}}
+content-type: application/json
+
+{
+    "login": "test1",
+    "name": "test1",
+    "role": "user",
+    "pwd": "test2",
+    "targetCalories": 0
+}
+
 ### Login as test
 
 POST {{endpoint}}/api/login HTTP/1.1

@@ -19,7 +19,8 @@ type AppView =
     | NoView
     | ErrorView of string
     | SummaryData of SummaryViewModel
-    | DayView of EntryForm.Types.Model
+    | DayView of System.DateTime * EntryForm.Types.Model
+    | ManageUsers of ManageUsers.Types.Model
 
 type Model = Model of UserInfo * AppView
 type Msg =
@@ -27,3 +28,4 @@ type Msg =
     | ReceivedUserSummary of Result<SummaryData list,string>
     | SummaryViewMsg of SummaryViewMsg
     | DayViewMsg of EntryForm.Types.Msg
+    | ManageUsersMsg of ManageUsers.Types.Msg

@@ -68,9 +68,7 @@ let view ({user = user; data = data } as model) dispatch =
     let inputTargetRef = createRef None
 
     div [ Class "summary-items" ]
-        [ yield Heading.h2 [] [ str user.userName ]
-          yield Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
-          yield Columns.columns [ Columns.IsGap (Screen.All, Columns.Is1) ]
+        [ yield Columns.columns [ Columns.IsGap (Screen.All, Columns.Is1) ]
                     (weekDayNames |> List.ofArray |> List.map (fun d -> Column.column [] [ strong [] [str d] ]))
           yield!
               calendar |> splitBy 7 |>

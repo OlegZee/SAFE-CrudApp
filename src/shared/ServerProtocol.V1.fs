@@ -34,7 +34,7 @@ type UpdUserData = {
     amount: float
 }
 
-type UserCreated = {
+type UserRecordCreated = {
     record_id: int
 }
 
@@ -60,4 +60,17 @@ type WhoResult = {
 
 type UserSettings = {
     targetCalories: float
+}
+
+type CreateUserInfo = {
+    login: string
+    pwd: string
+    name: string
+
+    role: string
+    targetCalories: float
+}
+
+type UserCreatedResponse = {
+    user_id: int
 }

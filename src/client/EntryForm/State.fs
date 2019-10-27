@@ -12,8 +12,6 @@ let initNewEntry ( ): NewEntry =
         meal = ""
         amount = "" }
 
-console.log("VALIDATE", TimeSpan.TryParse "12:13", Double.TryParse "123")
-
 let validateEntry (d: NewEntry) : Result<CreateUserData,string> =
     // TODO fable-validate for nicer validation rules
     match TimeSpan.TryParse d.time, d.meal, Double.TryParse d.amount with
@@ -26,12 +24,11 @@ let validateEntry (d: NewEntry) : Result<CreateUserData,string> =
     | _,_,(true,v) when not (v > 0.0 && v < 1000.0) -> Error "invalid amount value, must be between 0 and 1000"
     | _ -> Error "some data is not valid"
 
-let init (apiUrl, date, token): Model *  Cmd<Msg> =
-    { apiUrl = apiUrl; token = token; date = date
+let init (apiUrl, token): Model *  Cmd<Msg> =
+    { apiUrl = apiUrl; token = token
       data = Init
       newEntry = initNewEntry()
-      newEntryValid = Error "input incomplete"
-      lastUpdate = Ok() }, Cmd.ofMsg RefreshData
+      newEntryValid = Error "input incomplete" }, Cmd.ofMsg RefreshData
 
 let update (msg: Msg) (model: Model) =
     match msg with
