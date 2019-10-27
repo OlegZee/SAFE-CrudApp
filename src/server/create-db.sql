@@ -1,5 +1,6 @@
 --
 -- PostgreSQL database dump
+-- psql -d calories -a -f create-db.sql
 --
 
 -- Dumped from database version 10.10
