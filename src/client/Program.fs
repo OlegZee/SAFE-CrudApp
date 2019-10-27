@@ -23,7 +23,6 @@ type Msg =
     | LoggedIn of Result<Token*User,string>
 
 let urlUpdate (page: Option<Page>) (model: Model) =
-    console.log ("urlupdate", page)
     match model, page with
     | _, Some LoginScreen | _, Some LoginScreen ->
         let loginModel, cmd = Login.State.init()
@@ -49,7 +48,6 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
         model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
     | _, LoggedIn (Ok (Token token, user)) ->
-        // console.log("initialized app state, nagivate /", msg)
         let appModel, cmd = App.State.init (user, token)
         Connected (Token token, appModel),
             Cmd.batch [

@@ -78,7 +78,7 @@ module private UsersApi =
                 let deleteQuery = query { for c in dataCtx.Public.Users do where (c.Id = userId) }
                 let resultCode = 
                     match deleteQuery |> Seq.tryHead with
-                    | Some _ -> Successful.NO_CONTENT | _ -> RequestErrors.NOT_FOUND ""
+                    | Some _ -> Successful.OK "{}" | _ -> RequestErrors.NOT_FOUND ""
                 try
                     let! _ = deleteQuery |> Sql.Seq.``delete all items from single table``
                     return! resultCode next ctx

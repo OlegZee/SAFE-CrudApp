@@ -6,6 +6,8 @@ open Fable.React.Props
 open Fable.Core.JsInterop
 open Fulma
 
+// TODO can be simplified to not use model/msg
+
 module Types =
     type Model = { Login: string; Pwd: string }
     type Msg = | SetLogin of string | SetPwd of string
@@ -39,7 +41,6 @@ let view (model : Model) (dispatch : Msg -> unit) (dispatchParent: ParentMsg -> 
                               Input.Placeholder "Your Login"
                               Input.DefaultValue model.Login
                               Input.OnChange (fun ev -> !!ev.target?value |> (SetLogin >> dispatch))
-                              // Input.Props [ OnChange (fun event -> !!event.target?value |> (SetLogin >> dispatch)) ]
                               Input.Props [ AutoFocus true ] ] ] ]
                   Field.div [ ]
                     [ Control.div [ ]
