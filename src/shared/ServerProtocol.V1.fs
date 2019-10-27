@@ -46,6 +46,11 @@ type LoginData = {
     pwd: string
 }
 
+type ChPassPayload = {
+    oldpwd: string
+    newpwd: string
+}
+
 type LoginResult = {
     token: string
 }

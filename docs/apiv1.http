@@ -111,6 +111,17 @@ content-type: application/json
     "targetCalories": 0
 }
 
+### Change user password
+
+POST {{endpoint}}/api/chpass HTTP/1.1
+Authorization: Bearer CfDJ8B8vgv0iBzVKiQwDxVjDVROPsBzIxahRxZsoz_4oeEXRpmaLx172tcbbNU1GH2zxbfQu7eTQryRLvBDML_7fhmAOVDVMQwOv5Cr6QYZ_3czRSG3Y9QS52WxPClj3vxJKr3Q0JXGYPgo2nJaHdExDNcuYx2hclpouzwg4lL8cDMsk
+content-type: application/json
+
+{
+    "oldpwd": "pass",
+    "newpwd": "test1"
+}
+
 ### Login as test
 
 POST {{endpoint}}/api/login HTTP/1.1

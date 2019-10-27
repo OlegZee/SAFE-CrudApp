@@ -7,7 +7,7 @@ open Giraffe
 open FSharp.Data
 open FSharp.Control.Tasks.ContextInsensitive
 
-open DataAccess.SqlModel
+open DataAccess
 open ServerProtocol.V1
 
 module private Mappings =

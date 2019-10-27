@@ -1,4 +1,4 @@
-module Handlers.CryptoHelpers
+module CryptoHelpers
 // authentication related code
 
 open System

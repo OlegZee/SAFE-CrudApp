@@ -6,7 +6,7 @@ open Giraffe
 open FSharp.Data
 open FSharp.Control.Tasks.ContextInsensitive
 
-open DataAccess.SqlModel
+open DataAccess
 open ServerProtocol.V1
 
 [<CLIMutable>]
@@ -61,6 +61,28 @@ module private Implementation =
                 Successful.OK { role = session.user_role; name = user.Name; login = user.Login }
             | None -> RequestErrors.NOT_FOUND "" )
 
+    let changePwd : HttpHandler =
+        requiresAuth(fun session next ctx ->
+            task {
+                let! payload = ctx.BindJsonAsync<ChPassPayload>()
+                let oldpwdHash = CryptoHelpers.calculateHash payload.oldpwd
+                let newpwdHash = CryptoHelpers.calculateHash payload.newpwd
+
+                let foundUser = query {
+                    for user in dataCtx.Public.Users do
+                    where (user.Id = session.user_id && user.Pwdhash = oldpwdHash)
+                    select (Some user);
+                    exactlyOneOrDefault }
+    
+                match foundUser with
+                | Some user ->
+                    user.Pwdhash <- newpwdHash
+                    dataCtx.SubmitUpdates()
+                    return! Successful.NO_CONTENT next ctx
+                | None ->
+                    return! RequestErrors.FORBIDDEN "old password don't match" next ctx
+            })
+        
 open Implementation
 
 let requiresAuth = Implementation.requiresAuth
@@ -69,4 +91,5 @@ let handler : HttpHandler =
     choose [
         route "/api/login" >=> POST >=> login
         route "/api/who" >=> GET >=> who
+        route "/api/chpass" >=> POST >=> changePwd
     ]
