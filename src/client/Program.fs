@@ -17,7 +17,6 @@ type Model =
     | Connected of Token * App.Types.Model
 
 type Msg =
-    | LoginMsg of Login.Types.Msg
     | AppMsg of App.Types.Msg
     | ProcessLogin of Login.Types.ParentMsg
     | LoggedIn of Result<Token*User,string>
@@ -25,8 +24,7 @@ type Msg =
 let urlUpdate (page: Option<Page>) (model: Model) =
     match model, page with
     | _, Some LoginScreen | _, Some LoginScreen ->
-        let loginModel, cmd = Login.State.init()
-        LoggingIn loginModel, Cmd.map LoginMsg cmd
+        LoggingIn (Login.State.init None), Cmd.none
     | Connected (session, appModel), _ ->
         let appState, cmd = App.State.urlUpdate page appModel
         Connected (session, appState), Cmd.map AppMsg cmd
@@ -41,9 +39,6 @@ let init result : Model * Cmd<Msg> =
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     // console.log("got update", msg)
     match model, msg with
-    | LoggingIn model, LoginMsg msg ->
-        let nextModel, cmd = Login.State.update msg model
-        LoggingIn nextModel, Cmd.map LoginMsg cmd
 
     | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
         model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
@@ -54,7 +49,7 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
                 toPath Home |> Navigation.newUrl
                 cmd |> Cmd.map AppMsg ]
     | _, LoggedIn (Error e) ->
-        model, toPath LoginScreen |> Navigation.newUrl
+        LoggingIn (Login.State.init <| Some e), toPath LoginScreen |> Navigation.newUrl
 
     | Connected (session, appModel), AppMsg msg ->
         let nextModel, cmd = App.State.update msg appModel
@@ -76,12 +71,9 @@ let view (model : Model) (dispatch : Msg -> unit) =
                     [ page ] ] ]
 
     match model with
-    | Initializing ->
-        span [] [ str "initializing..." ] |> wrapPage
-    | LoggingIn model -> 
-        Login.view model (LoginMsg >> dispatch) (ProcessLogin >> dispatch) |> wrapPage
-    | Connected (_, appModel) ->
-        App.View.view appModel (AppMsg >> dispatch)
+    | Initializing ->            span [] [ str "initializing..." ] |> wrapPage
+    | LoggingIn model ->         Login.view model (ProcessLogin >> dispatch) |> wrapPage
+    | Connected (_, appModel) -> App.View.view appModel (AppMsg >> dispatch)
     | other ->
         span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ] |> wrapPage
 

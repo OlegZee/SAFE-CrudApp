@@ -3,7 +3,6 @@ module App
 open System
 open System.IO
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Cors.Infrastructure
 open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.DataProtection
 open Microsoft.Extensions.Logging
