@@ -16,7 +16,7 @@ let reportLine (data: SummaryData) =
     tr [] [
         td [ ] [ str <| data.rdate.ToShortDateString() ]
         td [ ] [ str <| data.count.ToString() ]
-        td [ ] [ str <| data.amount.ToString() ]
+        td [ Style [ TextAlign TextAlignOptions.Right ] ] [ str <| sprintf "%.2f" data.amount ]
     ]
 
 let queryParameters (dispatch) =
@@ -48,10 +48,10 @@ let queryParameters (dispatch) =
     div [] [
         Field.div [ ]
             [ Label.label [ ] [ str "Start date" ]
-              Input.datetimeLocal [ Input.Placeholder "Start from"; Input.Props [RefValue dat1Ref] ] ]
+              Input.date [ Input.Placeholder "Start from"; Input.Props [RefValue dat1Ref] ] ]
         Field.div [ ]
             [ Label.label [ ] [ str "End date" ]
-              Input.datetimeLocal [ Input.Placeholder "To"; Input.Props [RefValue dat2Ref] ] ]
+              Input.date [ Input.Placeholder "To"; Input.Props [RefValue dat2Ref] ] ]
         Field.div [ ]
             [ Label.label [ ] [ str "Time start" ]
               Input.time [ Input.Placeholder "Start time"; Input.Props [RefValue time1Ref] ] ]
@@ -76,8 +76,8 @@ let view (model: Model) (dispatch: Msg -> unit) =
                         thead [ ]
                             [ tr [ ]
                                  [ th [ ] [ str "Date" ]
-                                   th [ ] [ str "Count" ]
-                                   th [ ] [ str "Amount" ] ] ]
+                                   th [ ] [ str "Entries Count" ]
+                                   th [ ] [ str "Amount (calories)" ] ] ]
                         tbody [ ] (records |> List.map reportLine) ]
                         ]
         ]
