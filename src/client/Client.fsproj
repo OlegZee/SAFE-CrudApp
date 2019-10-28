@@ -20,6 +20,9 @@
         <Compile Include="ManageUsers\Types.fs" />
         <Compile Include="ManageUsers\State.fs" />
         <Compile Include="ManageUsers\View.fs" />
+        <Compile Include="ReportsForm\Types.fs" />
+        <Compile Include="ReportsForm\State.fs" />
+        <Compile Include="ReportsForm\View.fs" />
         <Compile Include="App\Types.fs" />
         <Compile Include="App\State.fs" />
         <Compile Include="App\SummaryView.fs" />

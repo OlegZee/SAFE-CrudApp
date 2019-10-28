@@ -67,6 +67,10 @@ let update (msg: Msg) (model: Model) =
         let nextModel, cmd = ManageUsers.State.update msg usersModel
         Model (user, ManageUsers nextModel), Cmd.map ManageUsersMsg cmd
 
+    | ReportViewMsg msg, Model (user, ReportView reportModel) ->
+        let nextModel, cmd = ReportsForm.State.update msg reportModel
+        Model (user, ReportView nextModel), Cmd.map ReportViewMsg cmd
+
     | _ ->
         console.warn("the message is unexpected in this model state", msg, model)
         model, Cmd.none
@@ -104,6 +108,11 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
             | DayView (_, otherUser, _) -> otherUser
             | _ -> user
         Model (user, DayView (date, otherUser, dayViewModel)), Cmd.map DayViewMsg cmd
+
+    | Some Router.Report ->
+        let reportModel, cmd = ReportsForm.State.init (user.token)
+        Model (user, ReportView reportModel), Cmd.map ReportViewMsg cmd
+
 
     | Some page ->
         Model (user, ErrorView (page.ToString())), Cmd.none

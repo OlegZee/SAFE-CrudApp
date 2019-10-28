@@ -28,6 +28,26 @@ Authorization: Bearer {{admin_token}}
 GET {{endpoint}}/api/v1/users/111/data HTTP/1.1
 Authorization: Bearer {{admin_token}}
 
+### Get user data by id filterd by date
+
+GET {{endpoint}}/api/v1/users/111/data?from=2019-10-24 HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
+### Get user data by id filterd by date (before)
+
+GET {{endpoint}}/api/v1/users/111/data?to=2019-10-21 HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
+### Get user data by id filterd by date (range)
+
+GET {{endpoint}}/api/v1/users/111/data?from=2019-10-21&to=2019-10-21 HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
+### Get user data by id filterd by date (range)
+
+GET {{endpoint}}/api/v1/users/111/data?from=2019-10-1&tfrom=10:00&tto=12:00 HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
 ### Manager cannot access user data
 
 GET {{endpoint}}/api/v1/users/111/data HTTP/1.1

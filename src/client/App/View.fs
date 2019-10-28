@@ -85,6 +85,10 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str "Manage users" ]
                     ManageUsers.View.view (data, user.userRole) (ManageUsersMsg >> dispatch) ]
+        | ReportView data ->
+            div [ Class "app-screen-title" ]
+                [   Heading.h2 [] [ str "Reports" ]
+                    ReportsForm.View.view (data) (ReportViewMsg >> dispatch) ]
         | other ->
             div [ Class "app-screen-title" ]
               [ Heading.h2 [] [ str "Unknown state" ]
@@ -106,6 +110,9 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
                       a [ Href hrefToday; Class "item active" ]
                             [ Icon.icon [] [ Fa.i [ Fa.Solid.CalendarDay ] [] ]
                               span [ Class "name" ] [ str "Today" ] ]
+                      a [ Href <| Router.toPath Router.Report; Class "item active" ]
+                            [ Icon.icon [] [ Fa.i [ Fa.Solid.BookOpen ] [] ]
+                              span [ Class "name" ] [ str "Reports" ] ]
                       ]
                 yield div [ Class "today" ]
                         [ Button.a [ Button.Color IsDanger; Button.IsFullWidth; Button.Props [ Href hrefToday] ] [ str "Today" ] ]

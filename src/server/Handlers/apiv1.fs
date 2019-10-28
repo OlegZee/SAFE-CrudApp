@@ -88,18 +88,33 @@ module private UsersApi =
             }
             
 module UserInputApi =
+    open System
     // returns SummaryData
     let getUserSummary (userId: int): HttpHandler =
         fun next ctx ->
+            let tryGet name parse deflt = 
+                match ctx.TryGetQueryStringValue name |> Option.map parse with
+                | Some (true, value) -> value | _ -> deflt
+
+            let dateFrom =  tryGet "from" DateTime.TryParse DateTime.MinValue
+            let dateTo =  tryGet "to" DateTime.TryParse DateTime.MaxValue
+
+            let timeFrom =  tryGet "tfrom" TimeSpan.TryParse TimeSpan.MinValue
+            let timeTo =  tryGet "tto" TimeSpan.TryParse TimeSpan.MaxValue
+
+            // TODO build query on the fly
+
             query { 
                 for record in dataCtx.Public.Calories do
-                    where (record.UserId = userId)
+                    where (record.UserId = userId
+                        && record.ConsumeDate >= dateFrom && record.ConsumeDate <= dateTo
+                        && record.ConsumeTime >= timeFrom && record.ConsumeTime <= timeTo )
                     groupBy record.ConsumeDate into g
                     sortBy g.Key
                     select  {
                         rdate = g.Key
                         count = g.Count()
-                        amount = g.Sum(fun g -> g.Amount) |> float }
+                        amount = g.Sum(fun g -> float g.Amount) }
                 }
             |> ctx.WriteJsonAsync
 

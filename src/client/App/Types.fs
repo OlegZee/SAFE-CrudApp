@@ -23,6 +23,7 @@ type AppView =
     | DayView of System.DateTime * UserInfo * EntryForm.Types.Model
     | ManageUsers of ManageUsers.Types.Model
     | UserSummaryData of UserInfo * SummaryViewModel
+    | ReportView of ReportsForm.Types.Model
 
 type Model = Model of UserInfo * AppView
 type Msg =
@@ -33,3 +34,4 @@ type Msg =
     | SummaryViewMsg of SummaryViewMsg
     | DayViewMsg of EntryForm.Types.Msg
     | ManageUsersMsg of ManageUsers.Types.Msg
+    | ReportViewMsg of ReportsForm.Types.Msg

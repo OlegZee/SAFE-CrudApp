@@ -90,4 +90,26 @@ let retrieveUserSummary (token, userId) : JS.Promise<Result<User * SummaryData l
                 | Ok user, Ok summary      -> Ok (user, summary)
                 | Error e, _ | _, Error e  -> Error e
         with e -> return Error (string e) }
+
+open System        
+type QueryDataParams = {
+    from: DateTime option
+    to': DateTime option
+
+    tfrom: TimeSpan option
+    tto: TimeSpan option }
         
+let queryData (token, query: QueryDataParams) : JS.Promise<Result<SummaryData list,string>> =
+    let d v = Option.map (fun (x: DateTime) -> x.ToString("yyyy-MM-dd")) v
+    let t v = Option.map (fun (x: TimeSpan) -> sprintf "%i:%i" x.Hours x.Minutes) v
+    let queryStr =
+        [
+            "from", d query.from
+            "to", d query.to'
+            "tfrom", t query.tfrom
+            "tto", t query.tto
+        ] |> List.choose( fun (key,value) -> value |> function |Some v -> sprintf "%s=%s" key v |> Some |_ -> None)
+        |> Array.ofList |> (fun items -> String.Join("&", items))
+    promise {
+        try return! Fetch.tryFetchAs<SummaryData list>("/api/v1/data?" + queryStr, isCamelCase = false, properties = mkRestRequestProps token)
+        with e -> return Error (string e) }        
