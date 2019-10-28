@@ -12,9 +12,10 @@ You'll need to install the following pre-requisites in order to build SAFE appli
 
 ## How to build
 
-```bash
-fake run
-```
+* setup local Postgresql and roll out "calories" database
+* restore database schema by running `psql -d calories -a -f create-db.sql` from src/server folder
+* correct connection settings in src/server/DataAccess.fs
+* build using `fake build` command line
 
 Now you could run the application:
 
@@ -23,17 +24,12 @@ cd src\server
 bin\Debug\netcoreapp3.0\server.exe 
 ```
 
-`fake build target tests` would run e2e test suite.
+* now navigate to [http://localhost:8085]
+* if the database is new connect under admin/<pwd>, where pwd is some number you can find in server logs
 
-## Work with the application
+`fake build target Run` start development mode.
 
-To concurrently run the server and the client components in watch mode use the following command:
-
-```bash
-fake build -t Run
-```
-
-## Setup notes
+## Setup notes (DRAFT, Not correct)
 
 Use `fake run` command to start the server in development mode.
 Use one of the following accounts to access the server:
