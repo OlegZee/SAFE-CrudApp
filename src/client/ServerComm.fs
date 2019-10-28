@@ -79,4 +79,15 @@ let removeUser (token, record_id: int) : JS.Promise<Result<unit,string>> =
         with e ->
             Browser.Dom.console.log("remove result error", e)
             return Error (string e) }
+
+let retrieveUserSummary (token, userId) : JS.Promise<Result<User * SummaryData list,string>> =
+    promise {
+        try
+            let! userInfo = Fetch.tryFetchAs<User>(sprintf "/api/v1/users/%i" userId, isCamelCase = false, properties = mkRestRequestProps token)
+            let! summary = Fetch.tryFetchAs<SummaryData list>(sprintf "/api/v1/users/%i/data" userId, isCamelCase = false, properties = mkRestRequestProps token)
+            return
+                match userInfo, summary with
+                | Ok user, Ok summary      -> Ok (user, summary)
+                | Error e, _ | _, Error e  -> Error e
+        with e -> return Error (string e) }
         

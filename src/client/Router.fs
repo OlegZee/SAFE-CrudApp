@@ -9,7 +9,7 @@ type Page =
     | SignupScreen
     | ManageUsers
     | UserOverview of int
-    | UserCaloriesInput of int * System.DateTime
+    | UserDailyView of int * System.DateTime
 
 let toPath = function
     | Home -> "#/"
@@ -18,7 +18,7 @@ let toPath = function
     | SignupScreen -> "#/signup"
     | ManageUsers -> "#/users"
     | UserOverview userId -> sprintf "#/users/%i" userId
-    | UserCaloriesInput (userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-MM-dd"))
+    | UserDailyView (userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-MM-dd"))
 
 let dt state =
     let parseDate (s: string) =
@@ -35,7 +35,7 @@ let pageParser : Parser<Page->_,Page> =
         map SignupScreen (s "signup")
         map ManageUsers (s "users")
         map UserOverview (s "users" </> i32)
-        map (fun u d -> UserCaloriesInput(u,d)) (s "users" </> i32 </> s "data" </> dt ) ]
+        map (fun u d -> UserDailyView(u,d)) (s "users" </> i32 </> s "data" </> dt ) ]
 
 // Browser.Dom.console.log (parse pageParser "/" Map.empty)
 // Browser.Dom.console.log (parse pageParser "/data/2019-10-25" Map.empty)

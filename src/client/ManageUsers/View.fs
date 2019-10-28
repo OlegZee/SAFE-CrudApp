@@ -29,7 +29,7 @@ let inputEntry (e: Map<string,string>, v: Result<CreateUserPayload,string>) disp
                     Button.OnClick(fun _ -> dispatch TabularFormTypes.SaveNewEntry) ] [ str "Add" ] ]
             ]
 
-let private recordEntry (r: User) dispatch =
+let private recordEntry (r: User, role) dispatch =
     tr  []
         [ td [ Style [ ] ] [ str <| r.user_id.ToString() ]
           td [ ] [ str r.login ]
@@ -37,13 +37,16 @@ let private recordEntry (r: User) dispatch =
           td [ Style [ ] ] [ str r.role ]
           td [ ] [ ]
           td [ Style [ TextAlign TextAlignOptions.Center ] ] [
-            Button.button [ Button.OnClick (fun _ -> window.alert "Editing is not implemented yet" ) ] [    // FIXME
+            if role = "admin" then
+                yield Button.a [ Button.Props [ Href <| Router.toPath (Router.UserOverview r.user_id) ] ] [
+                    Icon.icon [ Icon.Props [ Title "View user summary" ] ] [ Fa.i [ Fa.Solid.CalendarAlt ] [] ] ]
+            yield Button.button [ Button.OnClick (fun _ -> window.alert "Editing is not implemented yet" ) ] [    // FIXME
                 Icon.icon [ Icon.Props [ Title "Edit" ] ] [ Fa.i [ Fa.Solid.Pen ] [] ] ]
-            Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> TabularFormTypes.DeleteEntry r.user_id |> dispatch) ] [
+            yield Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> TabularFormTypes.DeleteEntry r.user_id |> dispatch) ] [
                 Icon.icon [ Icon.Props [ Title "Remove" ] ] [ Fa.i [ Fa.Solid.Trash ] [] ] ]
           ] ]
 
-let view (model: Model) (dispatch: Msg -> unit) =
+let view (model: Model, role: string) (dispatch: Msg -> unit) =
     match model.data with
     | TabularFormTypes.ModelState.Data entries ->
         div [] [
@@ -58,7 +61,7 @@ let view (model: Model) (dispatch: Msg -> unit) =
                            th [ ] [ str "Actions" ] ] ]
                 tbody [ ]
                     [
-                        yield! (entries |> List.map (fun r -> recordEntry r dispatch))
+                        yield! (entries |> List.map (fun r -> recordEntry (r, role) dispatch))
                         yield inputEntry (model.newEntry, model.newEntryValid) dispatch
                     ] ]
 

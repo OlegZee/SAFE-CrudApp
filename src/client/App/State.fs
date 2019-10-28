@@ -7,14 +7,16 @@ open Types
 open ServerProtocol.V1
 open ServerComm
 
+let mapUser (user: User, Token token): UserInfo =
+    { token = Token token
+      userName = user.name; userRole = user.role; target = user.targetCalories }
+
 let init (user: User, token: string) =
-    let userInfo: UserInfo = {
-        token = Token token
-        userName = user.name; userRole = user.role; target = user.targetCalories }
+    let userInfo = mapUser (user, Token token)
     Model (userInfo, NoView), Cmd.none
 
 let initSummaryModel user data : SummaryViewModel =
-    { user = user; data = data; editedTarget = None}
+    { user = user; data = data; editedTarget = None; otherUser = None }
     
 let updateSummaryViewModel (msg: SummaryViewMsg) (model: SummaryViewModel) =
     match msg with
@@ -29,22 +31,28 @@ let updateSummaryViewModel (msg: SummaryViewMsg) (model: SummaryViewModel) =
         | _ ->
             model, Cmd.none
 
-
 let update (msg: Msg) (model: Model) =
     // console.log("app msg", msg)
     match msg, model with
     | RefreshUserData, Model (user, _) ->
-        Model (user, NoView), Cmd.OfPromise.perform retrieveSummary user.token ReceivedUserSummary
+        Model (user, NoView),
+        Cmd.OfPromise.perform retrieveSummary user.token (function
+            | Ok data -> DisplayMySummary data
+            | Error e -> DisplayError e)
 
-    | ReceivedUserSummary (Ok summary), Model (user, _) ->
-        Model (user, SummaryData (initSummaryModel user summary)), Cmd.none
-
-    | ReceivedUserSummary (Error e), Model (user, _) ->
+    | DisplayError e, Model (user, _) ->
         Model (user, ErrorView e), Cmd.none
 
-    | DayViewMsg msg, Model (user, DayView (date, viewModel)) ->
+    | DisplayMySummary summary, Model (user, _) ->
+        Model (user, SummaryData (initSummaryModel user summary)), Cmd.none
+
+    | DisplayUserSummary (otherUserId, otherUser, summary), Model (user, _) ->
+        let summaryModel = { initSummaryModel otherUser summary with otherUser = Some otherUserId }
+        Model (user, UserSummaryData (otherUser, summaryModel)), Cmd.none
+
+    | DayViewMsg msg, Model (user, DayView (date, otherUser, viewModel)) ->
         let nextModel, cmd = EntryForm.State.update msg viewModel
-        Model (user, DayView (date, nextModel)), Cmd.map DayViewMsg cmd
+        Model (user, DayView (date, otherUser, nextModel)), Cmd.map DayViewMsg cmd
 
     | SummaryViewMsg (SavedTargetValue value), Model (user, SummaryData viewModel) ->
         // FIXME trick to update app data
@@ -68,15 +76,34 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
     //  console.log("app url update", page)
     match page with
     | Some Router.Home ->
-        let retrieveSummaryCmd = Cmd.OfPromise.perform ServerComm.retrieveSummary user.token ReceivedUserSummary
-        Model (user, NoView), retrieveSummaryCmd
+        Model (user, NoView), Cmd.ofMsg RefreshUserData
+
     | Some (Router.DailyView d) ->
         let apiUrl = "/api/v1/data/" + d.ToString("yyyy-MM-dd")
         let dayViewModel, cmd = EntryForm.State.init (apiUrl, user.token)
-        Model (user, DayView (d, dayViewModel)), Cmd.map DayViewMsg cmd
+        Model (user, DayView (d, user, dayViewModel)), Cmd.map DayViewMsg cmd
+
     | Some Router.ManageUsers ->
         let usersModel, cmd = ManageUsers.State.init ("", user.token)
         Model (user, ManageUsers usersModel), Cmd.map ManageUsersMsg cmd
+
+    | Some (Router.UserOverview userId) ->
+        Model (user, NoView),
+            Cmd.OfPromise.perform retrieveUserSummary (user.token, userId) (function
+            | Ok (otherUser,data) ->
+                let userInfo = mapUser (otherUser, user.token)
+                DisplayUserSummary (otherUser.user_id, userInfo, data) 
+            | Error e -> DisplayError e )
+
+    | Some (Router.UserDailyView (userId, date)) ->
+        let apiUrl = sprintf "/api/v1/users/%i/data/%s" userId (date.ToString("yyyy-MM-dd"))
+        let dayViewModel, cmd = EntryForm.State.init (apiUrl, user.token)
+        // HACK to get the user name
+        let otherUser = appView |> function
+            | UserSummaryData (otherUser, _)
+            | DayView (_, otherUser, _) -> otherUser
+            | _ -> user
+        Model (user, DayView (date, otherUser, dayViewModel)), Cmd.map DayViewMsg cmd
 
     | Some page ->
         Model (user, ErrorView (page.ToString())), Cmd.none

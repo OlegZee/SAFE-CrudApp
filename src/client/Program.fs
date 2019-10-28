@@ -25,6 +25,7 @@ type Msg =
     | SignedIn of Result<Token*User,string>
 
 let urlUpdate (page: Option<Page>) (model: Model) =
+    console.log("urlUpdate", page)
     match model, page with
     | _, Some LoginScreen ->
         LoggingIn (Login.State.init None), Cmd.none

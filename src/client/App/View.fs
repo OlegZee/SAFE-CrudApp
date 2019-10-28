@@ -14,6 +14,11 @@ let collectUserCalories (m: EntryForm.Types.Model): float =
     | EntryForm.Types.Data records -> records |> List.sumBy (fun { amount = a } -> a)
     | _ -> 0.0
 
+let private monthNames = [|
+    "January"; "February"; "March"; "April"; "May"; "June"; "July"
+    "August"; "September"; "October"; "November"; "December"
+  |]
+
 let topNav =
     let homePath = Router.toPath Router.Home
     Navbar.navbar [ Navbar.HasShadow ]
@@ -42,11 +47,11 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
         match appview with
         | NoView -> 
             strong [ ] [ str "Loading data..." ]
-        | DayView (date, x) ->
+        | DayView (date, user, x) ->
             let currentCalories = collectUserCalories x
 
             div [ Class "app-screen-title" ]
-              [ Heading.h2 [] [ str user.userName ]
+              [ Heading.h2 [] [ str user.userName ]     // TODO display other user
                 Heading.h3 [] [ str <| date.ToShortDateString() ]
                 EntryForm.View.view x (DayViewMsg >> dispatch)
                 Level.level [ ]
@@ -62,22 +67,29 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
                 ]
         | SummaryData data ->
             let now = System.DateTime.Now
-            let monthNames = [|
-                "January"; "February"; "March"; "April"; "May"; "June"; "July"
-                "August"; "September"; "October"; "November"; "December"
-              |]
     
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str <| user.userName ]
                     Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
                     SummaryView.view data (SummaryViewMsg >> dispatch) ]
             
+        | UserSummaryData (otherUser, data) ->
+            let now = System.DateTime.Now
+    
+            div [ Class "app-screen-title" ]
+                [   Heading.h2 [] [ str <| otherUser.userName ]
+                    Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
+                    SummaryView.view data (SummaryViewMsg >> dispatch) ]  // TODO the other message user here
+            
         | ManageUsers data ->
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str "Manage users" ]
-                    ManageUsers.View.view data (ManageUsersMsg >> dispatch) ]
+                    ManageUsers.View.view (data, user.userRole) (ManageUsersMsg >> dispatch) ]
         | other ->
-            span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ]
+            div [ Class "app-screen-title" ]
+              [ Heading.h2 [] [ str "Unknown state" ]
+                Heading.h4 [] [ str (sprintf "%A" other) ] ]
+    
 
     div [] [
         topNav
@@ -85,6 +97,9 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
             Column.column [ Column.Width (Screen.All, Column.Is3); Column.CustomClass "aside hero is-fullheight" ] [
                 let hrefToday = Router.toPath (Router.DailyView <| System.DateTime.Now)
                 yield div [ Class "main" ] [
+                      Label.label [] [
+                        str <| user.userName
+                      ]
                       a [ Href <| Router.toPath Router.Home; Class "item active" ]
                             [ Icon.icon [] [ Fa.i [ Fa.Solid.CalendarAlt ] [] ]
                               span [ Class "name" ] [ str "Summary" ] ]
