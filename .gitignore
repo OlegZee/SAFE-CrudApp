@@ -1,0 +1,24 @@
+# use glob syntax
+syntax: glob
+
+# IDE
+.vscode/
+.ionide/
+.vs/
+.idea/
+
+# build files
+packages/
+obj/
+bin/
+build/
+.fake/
+testrunner/
+appdata/
+APP_DATA/
+deploy/
+
+# Node
+node_modules/
+project.lock.json
+paket.local

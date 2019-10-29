@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <DefineConstants>FABLE_COMPILER</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="index.html" />
+        <None Include="paket.references" />
+        <None Include="style.scss" />
+        <Compile Include="Version.fs" />
+        <Compile Include="..\Shared\ServerProtocol.V1.fs" />
+        <Compile Include="Router.fs" />
+        <Compile Include="ServerComm.fs" />
+        <Compile Include="Login\View.fs" />
+        <Compile Include="Signup\View.fs" />
+        <Compile Include="EntryForm\Types.fs" />
+        <Compile Include="EntryForm\State.fs" />
+        <Compile Include="EntryForm\View.fs" />
+        <Compile Include="ManageUsers\Types.fs" />
+        <Compile Include="ManageUsers\State.fs" />
+        <Compile Include="ManageUsers\View.fs" />
+        <Compile Include="ReportsForm\Types.fs" />
+        <Compile Include="ReportsForm\State.fs" />
+        <Compile Include="ReportsForm\View.fs" />
+        <Compile Include="App\Types.fs" />
+        <Compile Include="App\State.fs" />
+        <Compile Include="App\SummaryView.fs" />
+        <Compile Include="App\View.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

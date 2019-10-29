@@ -1,0 +1,5 @@
+group Server
+
+    Giraffe
+    SQLProvider
+    Npgsql
