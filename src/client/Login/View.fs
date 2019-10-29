@@ -34,7 +34,7 @@ let view (model : Model) (dispatchParent: ParentMsg -> unit) =
           Box.box' [ ]
             [ figure [ Class "avatar" ]
                 [ img [ Src "https://placehold.it/128x128" ] ]
-              form [ ]
+              form [ OnSubmit loginBtnHandler ]
                 [ yield Field.div [ ]
                     [ Control.div [ ]
                         [ Input.text
@@ -50,12 +50,11 @@ let view (model : Model) (dispatchParent: ParentMsg -> unit) =
                   if Option.isSome model.LastError then
                     yield Notification.notification [ Notification.Color IsDanger ] [ str "Login failed. Check user/password." ]
                                     
-                  yield Button.button
-                    [ Button.Color IsInfo
+                  yield Button.Input.submit
+                    [ Button.Color IsInfo; Button.Props [ Value "Login" ]
                       Button.IsFullWidth
-                      Button.CustomClass "is-large is-block"
-                      Button.OnClick loginBtnHandler ]
-                    [ str "Login" ] ] ]
+                      Button.CustomClass "is-large is-block" ]
+              ] ]
           Text.p [ Modifiers [ Modifier.TextColor IsGrey ] ]
             [ a [ Href <| Router.toPath Router.SignupScreen ] [ str "Sign Up" ]
               str "\u00A0·\u00A0"

@@ -28,7 +28,7 @@ let loginServer (login, pwd) : JS.Promise<Result<Token*User,string>> =
 let signup (request: SignupPayload) : JS.Promise<Result<Token*User,string>> =
     promise {        
         try
-            let! (loginResponse: Result<CreateUserResponse,string>) = Fetch.tryPost("/api/signup", request, isCamelCase = false)
+            let! loginResponse = Fetch.tryPost("/api/signup", request, isCamelCase = false)
             match loginResponse with
             | Ok _ ->    return! loginServer (request.login, request.pwd)
             | Error e -> return Error e
@@ -112,4 +112,4 @@ let queryData (token, query: QueryDataParams) : JS.Promise<Result<SummaryData li
         |> Array.ofList |> (fun items -> String.Join("&", items))
     promise {
         try return! Fetch.tryFetchAs<SummaryData list>("/api/v1/data?" + queryStr, isCamelCase = false, properties = mkRestRequestProps token)
-        with e -> return Error (string e) }        
+        with e -> return Error (string e) }

@@ -29,8 +29,8 @@ module private Implementation =
     
                 match CryptoHelpers.tryDecrypt<SessionData> protector encrypted with  
                 | Some session -> handler session
-                | None -> RequestErrors.FORBIDDEN "bad token"
-            | Error e -> RequestErrors.FORBIDDEN e
+                | None -> RequestErrors.UNAUTHORIZED "Basic" "Realm" "You must be logged in"
+            | Error _ -> RequestErrors.UNAUTHORIZED "Basic" "Realm" "You must be logged in"
     
     let login : HttpHandler =
         fun next ctx -> task {
@@ -47,11 +47,8 @@ module private Implementation =
                 let token = CryptoHelpers.encrypt protector sessionData
 
                 return! Successful.OK { token = token } next ctx
-            | Some _ ->
-                return! RequestErrors.FORBIDDEN "Pwd" next ctx
-            | None ->
-                return! RequestErrors.FORBIDDEN "Not Found" next ctx
-
+            | _ ->
+                return! RequestErrors.FORBIDDEN () next ctx
         }
 
     let signup : HttpHandler =
@@ -75,7 +72,7 @@ module private Implementation =
 
                     do! dataCtx.SubmitUpdatesAsync()
 
-                    return! Successful.CREATED ({ user_id = record.Id }) next ctx
+                    return! Successful.OK "{}" next ctx // FIXME change to NO_CONTENT (needs unit support in Thoth)
             }
 
 
@@ -86,7 +83,7 @@ module private Implementation =
                     where (user.Id = session.user_id); select user } |> Seq.tryHead with
             | Some user ->
                 Successful.OK { role = session.user_role; name = user.Name; login = user.Login }
-            | None -> RequestErrors.NOT_FOUND "" )
+            | None -> ServerErrors.INTERNAL_ERROR "Cannot get here" )
 
     let changePwd : HttpHandler =
         requiresAuth(fun session next ctx ->

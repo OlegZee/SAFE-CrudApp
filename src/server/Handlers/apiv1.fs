@@ -78,7 +78,7 @@ module private UsersApi =
                 let deleteQuery = query { for c in dataCtx.Public.Users do where (c.Id = userId) }
                 let resultCode = 
                     match deleteQuery |> Seq.tryHead with
-                    | Some _ -> Successful.OK "{}" | _ -> RequestErrors.NOT_FOUND ""
+                    | Some _ -> Successful.OK "{}" | _ -> RequestErrors.NOT_FOUND "" // FIXME change to NO_CONTENT
                 try
                     let! _ = deleteQuery |> Sql.Seq.``delete all items from single table``
                     return! resultCode next ctx
@@ -177,7 +177,7 @@ module UserInputApi =
                     | _ -> ()
 
                     dataCtx.SubmitUpdates()
-                    Successful.OK "" next ctx
+                    Successful.OK "" next ctx   // TODO NO_CONTENT response here
                 | None ->
                     RequestErrors.NOT_FOUND "Not Found"  next ctx
         }
@@ -191,7 +191,7 @@ module UserInputApi =
                     where (c.UserId = userId && c.Id = recordId && c.ConsumeDate = rdate)
                 }
                 let resultCode = Seq.length deleteQuery |> function
-                    |1 -> Successful.OK | _ -> RequestErrors.NOT_FOUND
+                    |1 -> Successful.OK | _ -> RequestErrors.NOT_FOUND  // TODO NO_CONTENT
                 let! _ = deleteQuery |> Sql.Seq.``delete all items from single table``
 
                 return! resultCode "" next ctx
