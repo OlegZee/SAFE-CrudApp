@@ -1,6 +1,6 @@
 namespace EntryForm
 
-open System
+open CommonTypes
 open ServerProtocol.V1
 
 [<AutoOpen>]
@@ -17,7 +17,7 @@ module Types =
     }
 
     type Model = {
-        token: ServerComm.Token
+        token: Token
         apiUrl: string
         data: ModelState
         newEntry: NewEntry

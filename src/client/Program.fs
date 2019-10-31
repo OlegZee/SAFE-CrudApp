@@ -7,6 +7,7 @@ open Elmish.Navigation
 open Fable.React
 open Fulma
 
+open CommonTypes
 open ServerProtocol.V1
 open ServerComm
 open Router

@@ -71,7 +71,7 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str <| user.userName ]
                     Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
-                    SummaryView.view data (SummaryViewMsg >> dispatch) ]
+                    SummaryView.View.view data (SummaryViewMsg >> dispatch) ]
             
         | UserSummaryData (otherUser, data) ->
             let now = System.DateTime.Now
@@ -79,7 +79,7 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str <| otherUser.userName ]
                     Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
-                    SummaryView.view data (SummaryViewMsg >> dispatch) ]  // TODO the other message user here
+                    SummaryView.View.view data (SummaryViewMsg >> dispatch) ]  // TODO the other message user here
             
         | ManageUsers data ->
             div [ Class "app-screen-title" ]

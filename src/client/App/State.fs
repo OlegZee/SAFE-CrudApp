@@ -4,6 +4,7 @@ open Elmish
 open Browser.Dom
 
 open Types
+open CommonTypes
 open ServerProtocol.V1
 open ServerComm
 
@@ -14,22 +15,6 @@ let mapUser (user: User, Token token): UserInfo =
 let init (user: User, token: string) =
     let userInfo = mapUser (user, Token token)
     Model (userInfo, NoView), Cmd.none
-
-let initSummaryModel user data : SummaryViewModel =
-    { user = user; data = data; editedTarget = None; otherUser = None }
-    
-let updateSummaryViewModel (msg: SummaryViewMsg) (model: SummaryViewModel) =
-    match msg with
-    | EditTarget -> { model with editedTarget = model.user.target |> Some } , Cmd.none
-    | CancelEdit -> { model with editedTarget = None }, Cmd.none
-    | SavedTargetValue _ -> model, Cmd.ofMsg CancelEdit
-    | SaveValue newValue ->
-        match System.Double.TryParse newValue with
-        | true, value when value >= 0. && value < 10000. ->
-             { model with editedTarget = None }, Cmd.OfPromise.perform saveSettings (model.user.token, { targetCalories = value })
-                (function |Ok () -> SavedTargetValue value |Error e -> EditTarget)  // FIXME improve parent notification, validation/error
-        | _ ->
-            model, Cmd.none
 
 let update (msg: Msg) (model: Model) =
     // console.log("app msg", msg)
@@ -44,23 +29,23 @@ let update (msg: Msg) (model: Model) =
         Model (user, ErrorView e), Cmd.none
 
     | DisplayMySummary summary, Model (user, _) ->
-        Model (user, SummaryData (initSummaryModel user summary)), Cmd.none
+        Model (user, SummaryData (SummaryView.State.init user summary)), Cmd.none
 
     | DisplayUserSummary (otherUserId, otherUser, summary), Model (user, _) ->
-        let summaryModel = { initSummaryModel otherUser summary with otherUser = Some otherUserId }
+        let summaryModel = { SummaryView.State.init otherUser summary with otherUser = Some otherUserId }
         Model (user, UserSummaryData (otherUser, summaryModel)), Cmd.none
 
     | DayViewMsg msg, Model (user, DayView (date, otherUser, viewModel)) ->
         let nextModel, cmd = EntryForm.State.update msg viewModel
         Model (user, DayView (date, otherUser, nextModel)), Cmd.map DayViewMsg cmd
 
-    | SummaryViewMsg (SavedTargetValue value), Model (user, SummaryData viewModel) ->
+    | SummaryViewMsg (SummaryView.Types.SavedTargetValue value), Model (user, SummaryData viewModel) ->
         // FIXME trick to update app data
         let newUser = { user with target = value }
         Model (newUser, SummaryData { viewModel with user = newUser }), Cmd.none
 
     | SummaryViewMsg msg, Model (user, SummaryData viewModel) ->
-        let nextModel, cmd = updateSummaryViewModel msg viewModel
+        let nextModel, cmd = SummaryView.State.update msg viewModel
         Model (user, SummaryData nextModel), Cmd.map SummaryViewMsg cmd
 
     | ManageUsersMsg msg, Model (user, ManageUsers usersModel) ->

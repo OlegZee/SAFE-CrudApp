@@ -1,12 +1,14 @@
 module ManageUsers.Types
 
+open CommonTypes
+
 module TabularFormTypes =
     type ModelState<'trec> =
         | Init
         | Loading
         | Data of 'trec list
     type Model<'trec,'tnewrec> = {
-        token: ServerComm.Token
+        token: Token
         apiUrl: string
         data: 'trec ModelState
         newEntry: Map<string,string>

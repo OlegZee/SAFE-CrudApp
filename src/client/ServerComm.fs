@@ -4,10 +4,8 @@ open Fable.Core
 open Fetch.Types
 open Thoth.Fetch
 
+open CommonTypes
 open ServerProtocol.V1
-
-[<Erase>]
-type Token = Token of string
 
 let mkRestRequestProps (Token token) =
     [Fetch.requestHeaders [ ContentType "application/json"; Authorization ("Bearer " + token) ] ]

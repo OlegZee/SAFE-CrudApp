@@ -1,4 +1,4 @@
-module App.SummaryView
+module SummaryView.View
 
 open Browser.Dom
 open Fable.Core.JsInterop
@@ -6,16 +6,10 @@ open Fable.React
 open Fable.React.Props
 open Fulma
 
-open App.Types
+open Types
 open ServerProtocol.V1
 
 module private Internals =
-    let collectUserCalories (m: EntryForm.Types.Model): float =
-        
-        match m.data with
-        | EntryForm.Types.Data records -> records |> List.sumBy (fun { amount = a } -> a)
-        | _ -> 0.0
-
     let weekDayNames = [| "Sun"; "Mon"; "Tue"; "Wed"; "Thu"; "Fri"; "Sat" |]
 
     let itemView href exceedTarget (date: System.DateTime, d: SummaryData option) =
