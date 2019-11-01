@@ -69,16 +69,16 @@ let addNewUser (token, data: CreateUserPayload) : JS.Promise<Result<CreateUserRe
         try return! Fetch.tryPost("/api/v1/users", data, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
 
-let removeUser (token, record_id: int) : JS.Promise<Result<unit,string>> =
+let removeUser (token, UserId user_id) : JS.Promise<Result<unit,string>> =
     promise {
-        try let! result = Fetch.tryDelete(sprintf "/api/v1/users/%i" record_id, "", isCamelCase = false, properties = mkRestRequestProps token)
+        try let! result = Fetch.tryDelete(sprintf "/api/v1/users/%i" user_id, "", isCamelCase = false, properties = mkRestRequestProps token)
             Browser.Dom.console.log("remove result", result)
             return result |> Result.map ignore
         with e ->
             Browser.Dom.console.log("remove result error", e)
             return Error (string e) }
 
-let retrieveUserSummary (token, userId) : JS.Promise<Result<User * SummaryData list,string>> =
+let retrieveUserSummary (token, UserId userId) : JS.Promise<Result<User * SummaryData list,string>> =
     promise {
         try
             let! userInfo = Fetch.tryFetchAs<User>(sprintf "/api/v1/users/%i" userId, isCamelCase = false, properties = mkRestRequestProps token)

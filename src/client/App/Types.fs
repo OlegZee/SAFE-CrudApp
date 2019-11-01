@@ -17,7 +17,7 @@ type Msg =
     | RefreshUserData
     | DisplayMySummary of SummaryData list
     | DisplayError of string
-    | DisplayUserSummary of int * UserInfo * SummaryData list
+    | DisplayUserSummary of UserId * UserInfo * SummaryData list
     | SummaryViewMsg of SummaryView.Types.Msg
     | DayViewMsg of EntryForm.Types.Msg
     | ManageUsersMsg of ManageUsers.Types.Msg

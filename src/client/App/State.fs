@@ -81,10 +81,10 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
             Cmd.OfPromise.perform retrieveUserSummary (user.token, userId) (function
             | Ok (otherUser,data) ->
                 let userInfo = mapUser (otherUser, user.token)
-                DisplayUserSummary (otherUser.user_id, userInfo, data) 
+                DisplayUserSummary (UserId otherUser.user_id, userInfo, data) 
             | Error e -> DisplayError e )
 
-    | Some (Router.UserDailyView (userId, date)) ->
+    | Some (Router.UserDailyView (UserId userId, date)) ->
         let apiUrl = sprintf "/api/v1/users/%i/data/%s" userId (date.ToString("yyyy-MM-dd"))
         let dayViewModel, cmd = EntryForm.State.init (apiUrl, user.token)
         // HACK to get the user name

@@ -43,15 +43,20 @@ let topNav =
                           
 let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
 
+    let now = System.DateTime.Now
     let content =
         match appview with
         | NoView -> 
             strong [ ] [ str "Loading data..." ]
+        | DayView (date, user, x) when date > now ->
+            div [ Class "app-screen-title" ]
+                [ Heading.h5 [] [ str <| " you should not get here" ] ]
+
         | DayView (date, user, x) ->
             let currentCalories = collectUserCalories x
 
             div [ Class "app-screen-title" ]
-              [ Heading.h2 [] [ str user.userName ]     // TODO display other user
+              [ Heading.h2 [] [ str user.userName ]
                 Heading.h3 [] [ str <| date.ToShortDateString() ]
                 EntryForm.View.view x (DayViewMsg >> dispatch)
                 Level.level [ ]
@@ -66,16 +71,12 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
                     ]
                 ]
         | SummaryData data ->
-            let now = System.DateTime.Now
-    
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str <| user.userName ]
                     Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]
                     SummaryView.View.view data (SummaryViewMsg >> dispatch) ]
             
         | UserSummaryData (otherUser, data) ->
-            let now = System.DateTime.Now
-    
             div [ Class "app-screen-title" ]
                 [   Heading.h2 [] [ str <| otherUser.userName ]
                     Heading.h3 [] [ str monthNames.[now.Month - 1]; str " "; str (string now.Year) ]

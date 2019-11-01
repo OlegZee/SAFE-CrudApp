@@ -9,9 +9,9 @@
         <None Include="paket.references" />
         <None Include="style.scss" />
         <Compile Include="Version.fs" />
+        <Compile Include="CommonTypes.fs" />
         <Compile Include="..\Shared\ServerProtocol.V1.fs" />
         <Compile Include="Router.fs" />
-        <Compile Include="CommonTypes.fs" />
         <Compile Include="ServerComm.fs" />
         <Compile Include="Login\View.fs" />
         <Compile Include="Signup\View.fs" />

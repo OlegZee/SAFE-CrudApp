@@ -1,8 +1,11 @@
 module ManageUsers.State
 
 open Browser.Dom
-
 open Elmish
+
+open ServerProtocol.V1
+open CommonTypes
+
 
 module TabularForms =
     open ManageUsers.Types.TabularFormTypes
@@ -49,7 +52,6 @@ module TabularForms =
         | _ ->
             model, Cmd.none
 
-open ServerProtocol.V1
 open ManageUsers.Types
 
 let init (apiUrl, token) : Model * Cmd<Msg> =
@@ -71,7 +73,7 @@ let private validateEntry (map: Map<string,string>) =
 
 let private retrieveUsers (model: Model) = ServerComm.retrieveUsers (model.token)
 let private addNewUser (model: Model, data: CreateUserPayload) = ServerComm.addNewUser (model.token, data)
-let private removeUser (model: Model, rec_id: int) = ServerComm.removeUser (model.token, rec_id)
+let private removeUser (model: Model, rec_id: int) = ServerComm.removeUser (model.token, UserId rec_id)
 
 let update: Msg -> Model -> Model * Cmd<Msg> =
     TabularForms.update (retrieveUsers, validateEntry, addNewUser, removeUser)

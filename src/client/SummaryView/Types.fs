@@ -4,7 +4,7 @@ open ServerProtocol.V1
 open CommonTypes
 
 type Model = {
-    otherUser: int option   // this indicates the summary view displays other user (in admin mode)
+    otherUser: UserId option   // this indicates the summary view displays other user (in admin mode)
     user: UserInfo
     data: SummaryData list
     editedTarget: float option

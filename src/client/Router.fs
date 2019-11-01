@@ -1,5 +1,6 @@
 module Router
 
+open CommonTypes
 open Elmish.UrlParser
 
 type Page =
@@ -8,8 +9,8 @@ type Page =
     | LoginScreen
     | SignupScreen
     | ManageUsers
-    | UserOverview of int
-    | UserDailyView of int * System.DateTime
+    | UserOverview of UserId
+    | UserDailyView of UserId * System.DateTime
     | Report
 
 let toPath = function
@@ -18,8 +19,8 @@ let toPath = function
     | LoginScreen -> "#/login"
     | SignupScreen -> "#/signup"
     | ManageUsers -> "#/users"
-    | UserOverview userId -> sprintf "#/users/%i" userId
-    | UserDailyView (userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-MM-dd"))
+    | UserOverview (UserId userId) -> sprintf "#/users/%i" userId
+    | UserDailyView (UserId userId, day) -> sprintf "#/users/%i/data/%s" userId (day.ToString("yyyy-MM-dd"))
     | Report -> "#/report"
 
 let dt state =
@@ -36,8 +37,8 @@ let pageParser : Parser<Page->_,Page> =
         map LoginScreen (s "login")
         map SignupScreen (s "signup")
         map ManageUsers (s "users")
-        map UserOverview (s "users" </> i32)
-        map (fun u d -> UserDailyView(u,d)) (s "users" </> i32 </> s "data" </> dt )
+        map (UserId >> UserOverview) (s "users" </> i32)
+        map (fun u d -> UserDailyView(UserId u,d)) (s "users" </> i32 </> s "data" </> dt )
         map Report (s "report") ]
 
 // Browser.Dom.console.log (parse pageParser "/" Map.empty)

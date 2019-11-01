@@ -2,11 +2,13 @@ module SummaryView.View
 
 open Browser.Dom
 open Fable.Core.JsInterop
+open Fable.FontAwesome
 open Fable.React
 open Fable.React.Props
 open Fulma
 
 open Types
+open CommonTypes
 open ServerProtocol.V1
 
 module private Internals =
@@ -17,27 +19,30 @@ module private Internals =
             | Some (x: SummaryData) -> exceedTarget x.amount |> f
             | None -> false
 
+        let now = System.DateTime.Now
+        let isFuture date = date > now
+        let hrefIfEditable item = if isFuture date then item else a [ Href href ] [item]
+
         div [ classList [
                 "card", true
                 "exceed-target", exceed id d
                 "within-target", exceed not d
                 ] ] [
-            a [ Href href ] [
+            hrefIfEditable(
                 div [ Class "card-content" ] [
-                    yield span [ Class "summary-date" ] [ str (string date.Day) ]
+                    yield span [ classList ["summary-date", true; "summary-date-ro", isFuture date ] ] [ str (string date.Day) ]
                     match d with
                     | Some x ->
                         yield span [ Class "summary-amount" ] [
                             str <| x.amount.ToString()
                             str " calories" ]
                     | None -> yield str ""
-                ] ]
+                ])
         ]
 
 open Internals
-open Fable.FontAwesome
 
-let view ({user = user; data = data; otherUser = otherUser } as model) dispatch =
+let view ({user = user; data = data; otherUser = otherUserId } as model) dispatch =
 
     let now = System.DateTime.Now
     let firstDay = System.DateTime(now.Year, now.Month, 1)
@@ -70,11 +75,11 @@ let view ({user = user; data = data; otherUser = otherUser } as model) dispatch 
                                 | Some userId -> Router.UserDailyView (userId, date)
                                 | None -> Router.DailyView date
 
-                            Column.column [ ] [ itemView (href otherUser |> Router.toPath) (fun x -> x > user.target) d ]
+                            Column.column [ ] [ itemView (href otherUserId |> Router.toPath) (fun x -> x > user.target) d ]
                           | None -> Column.column [ ] [ str "" ] ))
                   )
           let targetValueControl =
-                match model.editedTarget, otherUser with
+                match model.editedTarget, otherUserId with
                 | Some x, None -> span [] [
                     Input.number [ Input.Props [ RefValue inputTargetRef; Style [ Width "130px"] ]; Input.DefaultValue <| x.ToString() ]
                     Button.button [ Button.OnClick (fun _ -> dispatch (SaveValue inputTargetRef.current.Value?value)) ]

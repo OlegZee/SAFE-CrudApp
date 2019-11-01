@@ -3,13 +3,14 @@ module ManageUsers.View
 open Fable.React
 open Fable.React.Props
 open Fable.Core.JsInterop
+open Fable.FontAwesome
 
 open Browser.Dom
 open Fulma
 
 open ManageUsers.Types
+open CommonTypes
 open ServerProtocol.V1
-open Fable.FontAwesome
 
 let inputEntry (e: Map<string,string>, v: Result<CreateUserPayload,string>) dispatch =
     let handleChange (field: string) =
@@ -38,7 +39,7 @@ let private recordEntry (r: User, role) dispatch =
           td [ ] [ ]
           td [ Style [ TextAlign TextAlignOptions.Center ] ] [
             if role = "admin" then
-                yield Button.a [ Button.Props [ Href <| Router.toPath (Router.UserOverview r.user_id) ] ] [
+                yield Button.a [ Button.Props [ Href <| Router.toPath (Router.UserOverview <| UserId r.user_id) ] ] [
                     Icon.icon [ Icon.Props [ Title "View user summary" ] ] [ Fa.i [ Fa.Solid.CalendarAlt ] [] ] ]
             yield Button.button [ Button.OnClick (fun _ -> window.alert "Editing is not implemented yet" ) ] [    // FIXME
                 Icon.icon [ Icon.Props [ Title "Edit" ] ] [ Fa.i [ Fa.Solid.Pen ] [] ] ]
