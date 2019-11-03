@@ -24,20 +24,28 @@ let recordEntry (r: UserData) dispatch =
                 Icon.icon [ Icon.Props [ Title "Remove" ] ] [ Fa.i [ Fa.Solid.Trash ] [] ] ]
           ] ]
 
-let inputEntry (map: Map<string,string>, v: Result<PostDataPayload,string>) dispatch =
+let inputEntry (map: Map<string,string>, v: Result<PostDataPayload, Map<string, string list>>) dispatch =
     let pickField name = map |> Map.tryFind name |> Option.defaultValue ""
 
     let handleChange (field: string) =
         Input.OnChange (fun e -> TabularForms.SetNewField (field, !!e.target?value) |> dispatch)
+    let errors fieldName = ValidateHelpers.errors v fieldName
+
     tr  [ ]
-        [   td [ ] [ Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ] ]
-            td [ ] [ Input.text [ Input.Placeholder "meal"; Input.DefaultValue <| pickField "meal";  handleChange "meal" ] ]
-            td [ ] [ Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ] ]
+        [   td [ ] [
+                yield Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ]
+                yield! errors "time" ]
+            td [ ] [
+                yield Input.text [ Input.Placeholder "meal"; Input.DefaultValue <| pickField "meal";  handleChange "meal" ]
+                yield! errors "meal" ]
+            td [ ] [
+                yield Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ]
+                yield! errors "amount" ]
             td [ Style [ TextAlign TextAlignOptions.Center ] ] [
-                let disabled, title = v |> function | Ok _ -> false, "" | Error e -> true, e
+                let disabled = v |> function | Ok _ -> false | Error e -> true
                 yield Button.button [
                     Button.IsFullWidth; Button.Disabled disabled
-                    Button.Props [ Title title ]; Button.Color IsSuccess
+                    Button.Color (if disabled then IsGrey else IsSuccess)
                     Button.OnClick(fun _ -> dispatch TabularForms.SaveNewEntry) ] [ str "Add" ] ]
             ]
   

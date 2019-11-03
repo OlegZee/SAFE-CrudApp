@@ -769,6 +769,8 @@ NUGET
       Fable.Browser.Dom (>= 1.0)
       Fable.Core (>= 3.0)
       FSharp.Core (>= 4.7)
+    Fable.Validation (0.2.1)
+      FSharp.Core (>= 4.2.3)
     FSharp.Core (4.7)
     Fulma (2.2.1)
       Fable.Core (>= 3.0)

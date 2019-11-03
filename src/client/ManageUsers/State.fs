@@ -1,6 +1,7 @@
 module ManageUsers.State
 
 open Elmish
+open Fable.Validation.Core
 
 open Components
 open Components.ValidateHelpers
@@ -12,15 +13,29 @@ let init token : Model * Cmd<Msg> =
     TabularForms.init token
 
 let private validateEntry (map: Map<string,string>) =
-    match Map.tryFind "login" map, Map.tryFind "name" map, Map.tryFind "pwd" map with
-    | NoneOrBlank _, _, _ -> Error "login is not specified"
-    | _, NoneOrBlank _, _ -> Error "name is not specified"
-    | _, _, NoneOrBlank _ -> Error "password is not specified"
-    | Some login, Some name, Some pwd ->
-        let role = map |> Map.tryFind "role" |> Option.defaultValue "user"
-        Ok ({ login = login; pwd = pwd; role = role; name = name; targetCalories = 0.0 }:CreateUserPayload)
-    | _ ->
-        Error "Some data is missing"
+    all <| fun t ->
+        let fromMap name = (map |> Map.tryFind name |> Option.defaultValue "") |> t.Test name in
+        { login = fromMap "login"
+            |> t.Trim
+            |> t.NotBlank "cannot be blank"
+            |> t.MaxLen 30 "maxlen is {len}"
+            |> t.MinLen 3 "minlen is {len}"
+            |> t.End
+          name = fromMap "name"
+              |> t.Trim
+              |> t.NotBlank "cannot be blank"
+              |> t.MaxLen 30 "maxlen is {len}"
+              |> t.MinLen 3 "minlen is {len}"
+              |> t.End
+          role = map |> Map.tryFind "role" |> Option.defaultValue "user"
+          pwd = fromMap "pwd"
+              |> t.Trim
+              |> t.NotBlank "cannot be blank"
+              |> t.MaxLen 100 "maxlen is {len}"
+              |> t.MinLen 3 "minlen is {len}"
+              |> t.End
+          targetCalories = 0.
+        }
 
 let private retrieveUsers (model: Model) = ServerComm.retrieveUsers (model.customData)
 let private addNewUser (model: Model, data: CreateUserPayload) = ServerComm.addNewUser (model.customData, data)

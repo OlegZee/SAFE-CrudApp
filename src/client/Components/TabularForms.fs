@@ -12,7 +12,7 @@ module TabularForms =
         customData: 'tcustom    // inheritor specific data
         data: 'trec ModelState
         newEntry: Map<string,string>
-        newEntryValid: Result<'tnewrec,string>
+        newEntryValid: Result<'tnewrec, Map<string,string list>>    // 'tfield: string list
         lastError: string option
     }
     type Msg<'trec,'recordKey> =
@@ -25,12 +25,13 @@ module TabularForms =
         | DeleteEntry of 'recordKey
         | ReceivedData of Result<'trec list,string>
 
+    let private initValidationError () = Error <| Map.add "" ["input incomplete"] Map.empty
     let initNewEntry () = Map.empty
     let init (customData): Model<'tr,_,_> *  Cmd<Msg<'tr,'recordKey>> =
         { customData = customData
           data = Init
           newEntry = initNewEntry ()
-          newEntryValid = Error "input incomplete"
+          newEntryValid = initValidationError()
           lastError = None }, Cmd.ofMsg RefreshData
 
     let update (retrieveData,validateEntry,addNewEntry,removeEntry) (msg: Msg<'tr,'recordKey>) (model: Model<'tr,'tnew,_>) =
@@ -38,7 +39,7 @@ module TabularForms =
         let respondRestApiResult = function |Ok _ -> RefreshData | Error e -> SetLastError (Some e)
         match msg with
         | RefreshData ->
-            { model with data = Loading; newEntry = initNewEntry(); newEntryValid = Error "input incomplete" },
+            { model with data = Loading; newEntry = initNewEntry(); newEntryValid = initValidationError() },
             Cmd.OfPromise.perform retrieveData model ReceivedData
         | ReceivedData (Ok data) ->
             { model with data = DataLoaded data; lastError = None }, Cmd.none

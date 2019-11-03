@@ -1,30 +1,32 @@
 module EntryForm.State
 
 open System
-open Components
-open Components.ValidateHelpers
 
+open Fable.Validation.Core
 open Elmish
-open ServerProtocol.V1
 
+open Components
+open ServerProtocol.V1
 open EntryForm.Types
 
-let validateEntry (map: Map<string,string>) : Result<PostDataPayload,string> =
-    match Map.tryFind "time" map, Map.tryFind "meal" map, Map.tryFind "amount" map with
-    | NoneOrBlank _, _, _ -> Error "time is not specified"
-    | _, NoneOrBlank _, _ -> Error "meal is not specified"
-    | _, _, NoneOrBlank _ -> Error "amount is not specified"
-    | Some time, Some meal, Some amount ->
-        // TODO fable-validate for nicer validation rules
-        match TimeSpan.TryParse time, meal, Double.TryParse amount with
-        | (true, time), meal, (true, amount) when amount > 0.0 && amount <= 9999.0 ->
-            Ok { rtime = time.ToString(); meal = meal; amount = amount }
-
-        | (false,_),_,_ -> Error "invalid time value"
-        | _,_,(false,_) -> Error "invalid amount value, must be a number"
-        | _,_,(true,v) when not (v > 0.0 && v <= 9999.0) -> Error "invalid amount value, must be between 0 and 1000"
-        | _ -> Error "some data is not valid"
-    | _ -> Error "Something went wrong (in fact impossible case)"
+let validateEntry (map: Map<string,string>) =
+    all <| fun t ->
+        let fromMap name = (map |> Map.tryFind name |> Option.defaultValue "") |> t.Test name in
+        { rtime = fromMap "time"
+            |> t.To TimeSpan.Parse "time should be a valid time value"
+            |> t.To string ""
+            |> t.End
+          meal = fromMap "meal"
+            |> t.Trim
+            |> t.NotBlank "name cannot be blank"
+            |> t.MaxLen 60 "maxlen is {len}"
+            |> t.MinLen 3 "minlen is {len}"
+            |> t.End
+          amount = fromMap "amount"
+            |> t.To double "should be a number"
+            |> t.Gt 0. "should greater then {min}"
+            |> t.Lt 10000. "shoudld less then {max}"
+            |> t.End }
 
 let init (apiUrl, token): Model * Cmd<Msg> =
     TabularForms.init { token = token; api = apiUrl }

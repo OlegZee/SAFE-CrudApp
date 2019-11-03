@@ -13,28 +13,37 @@ open ManageUsers.Types
 open CommonTypes
 open ServerProtocol.V1
 
-let inputEntry (e: Map<string,string>, v: Result<CreateUserPayload,string>) dispatch =
+let inputEntry (e: Map<string,string>, v: Result<CreateUserPayload, Map<string, string list>>) dispatch =
     let handleChange (field: string) =
-        Input.OnChange (fun e -> TabularForms.SetNewField (field, !!e.target?value) |> dispatch)
+        (fun (e: Browser.Types.Event) -> TabularForms.SetNewField (field, !!e.target?value) |> dispatch)
     let pickField name = e |> Map.tryFind name |> Option.defaultValue ""
+    let errors fieldName = ValidateHelpers.errors v fieldName
+
     tr  [ ]
         [   td [ ] [ ]
-            td [ ] [ Input.text [ Input.Placeholder "login"; Input.DefaultValue <| pickField "login"; handleChange "login" ] ]
-            td [ ] [ Input.text [ Input.Placeholder "name"; Input.DefaultValue <| pickField "name"; handleChange "name" ] ]
             td [ ] [
-                Select.select [ ] [
+                yield Input.text [ Input.Placeholder "login"; Input.DefaultValue <| pickField "login"; Input.OnChange (handleChange "login") ]
+                yield! errors "login" ]
+            td [ ] [
+                yield Input.text [ Input.Placeholder "name"; Input.DefaultValue <| pickField "name"; Input.OnChange (handleChange "name") ]
+                yield! errors "name" ]
+            td [ ] [
+                yield Select.select [ Select.Props [ OnChange (handleChange "role") ]] [
                     select [ DefaultValue "user" ] [
                         option [ Value "user" ] [ str "User" ]
                         option [ Value "manager" ] [ str "Manager" ]
                         option [ Value "admin" ] [ str "Admin" ] ]
                     ]
+                yield! errors "role"
                 ]
-            td [ ] [ Input.password [ Input.Placeholder "password"; Input.DefaultValue <| pickField "pwd"; handleChange "pwd" ] ]
+            td [ ] [
+                yield Input.password [ Input.Placeholder "password"; Input.DefaultValue <| pickField "pwd"; Input.OnChange (handleChange "pwd") ]
+                yield! errors "pwd" ]
             td [ Style [ TextAlign TextAlignOptions.Center ] ] [
-                let disabled, title = v |> function | Ok _ -> false, "" | Error e -> true, e
+                let disabled = v |> function | Ok _ -> false | Error _ -> true
                 yield Button.button [
                     Button.IsFullWidth; Button.Disabled disabled
-                    Button.Props [ Title title ]; Button.Color IsSuccess
+                    Button.Color (if disabled then IsGrey else IsSuccess)
                     Button.OnClick(fun _ -> dispatch TabularForms.SaveNewEntry) ] [ str "Add" ] ]
             ]
 

@@ -27,6 +27,7 @@ group Client
     nuget Fable.Elmish.Debugger ~> 3
     nuget Fable.Elmish.HMR ~> 4
     nuget Fable.Elmish.React ~> 3
+nuget Fable.Validation
 nuget Fulma.Elmish
 nuget Fulma.Extensions.Wikiki.Calendar
     nuget Thoth.Json 3.3
