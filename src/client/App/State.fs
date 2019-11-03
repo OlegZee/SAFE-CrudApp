@@ -73,7 +73,7 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
         Model (user, DayView (d, user, dayViewModel)), Cmd.map DayViewMsg cmd
 
     | Some Router.ManageUsers ->
-        let usersModel, cmd = ManageUsers.State.init ("", user.token)
+        let usersModel, cmd = ManageUsers.State.init user.token
         Model (user, ManageUsers usersModel), Cmd.map ManageUsersMsg cmd
 
     | Some (Router.UserOverview userId) ->
