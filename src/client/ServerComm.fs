@@ -47,7 +47,7 @@ let addNewEntry (token, apiUrl, data: PostDataPayload) : JS.Promise<Result<PostD
         try return! Fetch.tryPost(apiUrl, data, isCamelCase = false, properties = mkRestRequestProps token)
         with e -> return Error (string e) }
 
-let removeEntry (token, apiUrl, record_id: int) : JS.Promise<Result<unit,string>> =
+let removeEntry (token, apiUrl, EntryId record_id) : JS.Promise<Result<unit,string>> =
     promise {
         try let! result = Fetch.tryDelete(sprintf "%s/%i" apiUrl record_id, "", isCamelCase = false, properties = mkRestRequestProps token)
             return result |> Result.map ignore

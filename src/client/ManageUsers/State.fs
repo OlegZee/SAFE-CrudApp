@@ -3,6 +3,7 @@ module ManageUsers.State
 open Elmish
 
 open Components
+open Components.ValidateHelpers
 open ServerProtocol.V1
 
 open ManageUsers.Types
@@ -10,9 +11,6 @@ open ManageUsers.Types
 let init token : Model * Cmd<Msg> =
     TabularForms.init token
 
-let (|NoneOrBlank|_|) =
-    function |None -> Some "" | Some x when System.String.IsNullOrWhiteSpace x -> Some "" | _ -> None
-    
 let private validateEntry (map: Map<string,string>) =
     match Map.tryFind "login" map, Map.tryFind "name" map, Map.tryFind "pwd" map with
     | NoneOrBlank _, _, _ -> Error "login is not specified"

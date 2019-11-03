@@ -13,6 +13,7 @@
         <Compile Include="..\Shared\ServerProtocol.V1.fs" />
         <Compile Include="Router.fs" />
         <Compile Include="ServerComm.fs" />
+        <Compile Include="Components\ValidateHelpers.fs" />
         <Compile Include="Components\TabularForms.fs" />
 
         <Compile Include="Login\View.fs" />

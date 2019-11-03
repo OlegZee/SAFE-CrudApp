@@ -5,8 +5,12 @@ open Fable.Core.JsInterop
 open Fable.React.Props
 open Browser.Dom
 open Fulma
-open ServerProtocol.V1
 open Fable.FontAwesome
+
+open Components
+open CommonTypes
+open ServerProtocol.V1
+open EntryForm.Types
 
 let recordEntry (r: UserData) dispatch =
     tr  []
@@ -16,28 +20,30 @@ let recordEntry (r: UserData) dispatch =
           td [ Style [ TextAlign TextAlignOptions.Center ] ] [
             Button.button [ Button.OnClick (fun _ -> window.alert "Editing is not implemented yet" ) ] [    // FIXME
                 Icon.icon [ Icon.Props [ Title "Edit" ] ] [ Fa.i [ Fa.Solid.Pen ] [] ] ]
-            Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> DeleteEntry r.record_id |> dispatch) ] [
+            Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> TabularForms.DeleteEntry (EntryId r.record_id) |> dispatch) ] [
                 Icon.icon [ Icon.Props [ Title "Remove" ] ] [ Fa.i [ Fa.Solid.Trash ] [] ] ]
           ] ]
 
-let inputEntry (e: NewEntry, v: Result<PostDataPayload,string>) dispatch =
-    let handleChange (msg: string -> Msg) =
-        Input.OnChange (fun e -> !!e.target?value |> msg |> dispatch)
+let inputEntry (map: Map<string,string>, v: Result<PostDataPayload,string>) dispatch =
+    let pickField name = map |> Map.tryFind name |> Option.defaultValue ""
+
+    let handleChange (field: string) =
+        Input.OnChange (fun e -> TabularForms.SetNewField (field, !!e.target?value) |> dispatch)
     tr  [ ]
-        [   td [ ] [ Input.time [ Input.Placeholder "time"; Input.DefaultValue e.time; handleChange SetNewTime ] ]
-            td [ ] [ Input.text [ Input.Placeholder "meal"; Input.DefaultValue e.meal;  handleChange SetNewMeal ] ]
-            td [ ] [ Input.number [ Input.Placeholder "amount"; Input.DefaultValue e.amount; handleChange SetNewAmount ] ]
+        [   td [ ] [ Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ] ]
+            td [ ] [ Input.text [ Input.Placeholder "meal"; Input.DefaultValue <| pickField "meal";  handleChange "meal" ] ]
+            td [ ] [ Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ] ]
             td [ Style [ TextAlign TextAlignOptions.Center ] ] [
                 let disabled, title = v |> function | Ok _ -> false, "" | Error e -> true, e
                 yield Button.button [
                     Button.IsFullWidth; Button.Disabled disabled
                     Button.Props [ Title title ]; Button.Color IsSuccess
-                    Button.OnClick(fun _ -> dispatch SaveNewEntry) ] [ str "Add" ] ]
+                    Button.OnClick(fun _ -> dispatch TabularForms.SaveNewEntry) ] [ str "Add" ] ]
             ]
   
 let view (model: Model) (dispatch: Msg -> unit) =
     match model.data with
-    | ModelState.Data entries ->
+    | TabularForms.DataLoaded entries ->
         Table.table [ Table.IsBordered
                       Table.IsFullWidth
                       Table.IsStriped ]
