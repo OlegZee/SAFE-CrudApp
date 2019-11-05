@@ -7,7 +7,8 @@ open Elmish.Navigation
 open Fable.React
 open Fulma
 
-open CommonTypes
+open Fable.React.Props
+
 open ServerProtocol.V1
 open ServerComm
 open Router
@@ -16,14 +17,16 @@ type Model =
     | Initializing
     | LoggingIn of Login.Types.Model
     | Signup of Signup.Types.Model
-    | Connected of Token * App.Types.Model
+    | Connected of App.Types.Model
 
 type Msg =
     | AppMsg of App.Types.Msg
     | ProcessLogin of Login.Types.ParentMsg
     | ProcessSignup of Signup.Types.ParentMsg
-    | LoggedIn of Result<Token*User,string>
-    | SignedIn of Result<Token*User,string>
+    | LoggedIn of Result<User,string>
+    | SignedIn of Result<User,string>
+    | SignOut
+    | StartInitializing
 
 let urlUpdate (page: Option<Page>) (model: Model) =
     console.log("urlUpdate", page)
@@ -34,21 +37,23 @@ let urlUpdate (page: Option<Page>) (model: Model) =
     | _, Some SignupScreen ->
         Signup (Signup.State.init None), Cmd.none
 
-    | Connected (session, appModel), _ ->
+    | Connected appModel, _ ->
         let appState, cmd = App.State.urlUpdate page appModel
-        Connected (session, appState), Cmd.map AppMsg cmd
+        Connected (appState), Cmd.map AppMsg cmd
 
-    | _ ->
-        // otherwise redirect to login
-        Initializing, toPath LoginScreen |> Navigation.newUrl
+    | _ -> model, Cmd.none
 
 // defines the initial state and initial command (= side-effect) of the application
-let init result : Model * Cmd<Msg> =
-    Initializing, toPath LoginScreen |> Navigation.newUrl
+let init _ : Model * Cmd<Msg> =
+    console.log("Program.init")
+    Initializing, Cmd.OfPromise.perform checkConnection () LoggedIn
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
-    // console.log("got update", msg)
+    console.log("Program.update", msg)
     match model, msg with
+
+    | _, StartInitializing ->
+        Initializing, Cmd.OfPromise.perform checkConnection () LoggedIn
 
     | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
         model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
@@ -56,10 +61,10 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | Signup _ as model, ProcessSignup (Signup.Types.ParentMsg.Signup req) ->
         model, Cmd.OfPromise.perform signup req SignedIn
 
-    | _, LoggedIn (Ok (Token token, user))
-    | _, SignedIn (Ok (Token token, user)) ->
-        let appModel, cmd = App.State.init (user, token)
-        Connected (Token token, appModel),
+    | _, LoggedIn (Ok user)
+    | _, SignedIn (Ok user) ->
+        let appModel, cmd = App.State.init (user)
+        Connected appModel,
             Cmd.batch [
                 toPath Home |> Navigation.newUrl
                 cmd |> Cmd.map AppMsg ]
@@ -68,9 +73,12 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | _, SignedIn (Error e) ->
         LoggingIn (Login.State.init <| Some e), Cmd.none
 
-    | Connected (session, appModel), AppMsg msg ->
+    | Connected appModel, AppMsg msg ->
         let nextModel, cmd = App.State.update msg appModel
-        Connected (session, nextModel), Cmd.map AppMsg cmd
+        Connected nextModel, Cmd.map AppMsg cmd
+
+    | model, SignOut ->
+        model, Cmd.OfPromise.perform signOut () (fun _ -> StartInitializing)
 
     | _ ->
         console.log("unhandled message", msg)
@@ -78,6 +86,28 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
 
 let view (model : Model) (dispatch : Msg -> unit) =
 
+    let topNav dispatch =
+        let homePath = Router.toPath Router.Home
+        Navbar.navbar [ Navbar.HasShadow ]
+            [ Container.container []
+                [ Navbar.Brand.div []
+                    [ Navbar.Item.a [ Navbar.Item.Props [ Href homePath] ]
+                        [ img [ Src "http://bulma.io/images/bulma-logo.png"
+                                Alt "Bulma: a modern CSS framework based on Flexbox" ] ]
+                      Navbar.burger []
+                        [ span [ ] [ ]
+                          span [ ] [ ]
+                          span [ ] [ ] ] ]
+                  
+                  Navbar.End.div []
+                    [ Navbar.Item.div [ Navbar.Item.HasDropdown; Navbar.Item.IsHoverable ]
+                        [ Navbar.Link.a [] [ str "Account" ]
+                          Navbar.Dropdown.div []
+                            [ Navbar.Item.a [ Navbar.Item.Props [ Href homePath] ] [ str "Home" ]
+                              Navbar.divider [] []
+                              Navbar.Item.a [ Navbar.Item.Props [ OnClick (fun _ -> dispatch SignOut) ]] [ str "Logout" ]
+                              ] ] ] ] ]
+                              
     let wrapPage page =
         Hero.hero
             [ Hero.Color IsSuccess
@@ -91,9 +121,11 @@ let view (model : Model) (dispatch : Msg -> unit) =
     | Initializing ->         span [] [ str "initializing..." ] |> wrapPage
     | LoggingIn model ->      Login.view model (ProcessLogin >> dispatch) |> wrapPage
     | Signup model ->         Signup.view model (ProcessSignup >> dispatch) |> wrapPage
-    | Connected (_, appModel) -> App.View.view appModel (AppMsg >> dispatch)
-    | other ->
-        span [] [ str "Other state "; strong [ ] [ str (sprintf "%A" other) ] ] |> wrapPage
+    | Connected appModel ->
+        div [] [
+            topNav dispatch
+            App.View.view appModel (AppMsg >> dispatch)
+        ]
 
 #if DEBUG
 open Elmish.Debug

@@ -45,10 +45,6 @@ type ChPassPayload = {
     newpwd: string
 }
 
-type LoginResult = {
-    token: string
-}
-
 type WhoResult = {
     role: string
     login: string

@@ -4,13 +4,12 @@ open Elmish
 open Fable.Validation.Core
 
 open Components
-open Components.ValidateHelpers
 open ServerProtocol.V1
 
 open ManageUsers.Types
 
-let init token : Model * Cmd<Msg> =
-    TabularForms.init token
+let init () : Model * Cmd<Msg> =
+    TabularForms.init ()
 
 let private validateEntry (map: Map<string,string>) =
     all <| fun t ->
@@ -37,9 +36,9 @@ let private validateEntry (map: Map<string,string>) =
           targetCalories = 0.
         }
 
-let private retrieveUsers (model: Model) = ServerComm.retrieveUsers (model.customData)
-let private addNewUser (model: Model, data: CreateUserPayload) = ServerComm.addNewUser (model.customData, data)
-let private removeUser (model: Model, userId) = ServerComm.removeUser (model.customData, userId)
+let private retrieveUsers _ = ServerComm.retrieveUsers ()
+let private addNewUser (_, data: CreateUserPayload) = ServerComm.addNewUser data
+let private removeUser (_, userId) = ServerComm.removeUser userId
 
 let update: Msg -> Model -> Model * Cmd<Msg> =
     TabularForms.update (retrieveUsers, validateEntry, addNewUser, removeUser)

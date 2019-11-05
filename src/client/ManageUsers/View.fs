@@ -49,7 +49,7 @@ let inputEntry (e: Map<string,string>, v: Result<CreateUserPayload, Map<string, 
 
 let private recordEntry (r: User, role) dispatch =
     tr [] [
-        td [ Style [ ] ] [ str <| r.user_id.ToString() ]
+        td [ Style [ ] ] [ str <| sprintf "%i" r.user_id ]
         td [ ] [ str r.login ]
         td [ Style [ ] ] [ str r.name ]
         td [ Style [ ] ] [ str r.role ]

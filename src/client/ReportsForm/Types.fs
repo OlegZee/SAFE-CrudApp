@@ -12,7 +12,6 @@ type QueryModel = {
 }
 
 type Model = {
-    token: CommonTypes.Token
     data: SummaryData list
     lastError: string option
 }

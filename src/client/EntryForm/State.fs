@@ -28,12 +28,13 @@ let validateEntry (map: Map<string,string>) =
             |> t.Lt 10000. "shoudld less then {max}"
             |> t.End }
 
-let init (apiUrl, token): Model * Cmd<Msg> =
-    TabularForms.init { token = token; api = apiUrl }
+let init apiUrl: Model * Cmd<Msg> =
+    TabularForms.init (ApiUri apiUrl)
 
-let private retrieveData (model: Model) = ServerComm.retrieveDailyData (model.customData.token, model.customData.api)
-let private addNewEntry (model: Model, data) = ServerComm.addNewEntry (model.customData.token, model.customData.api, data)
-let private removeEntry (model: Model, recId) = ServerComm.removeEntry (model.customData.token, model.customData.api, recId)
+let private getApi ({ customData = ApiUri apiUrl }: Model) = apiUrl
+let private retrieveData (model: Model) = ServerComm.retrieveDailyData (getApi model)
+let private addNewEntry (model: Model, data) = ServerComm.addNewEntry (getApi model, data)
+let private removeEntry (model: Model, recId) = ServerComm.removeEntry (getApi model, recId)
 
 let update: Msg -> Model -> Model * Cmd<Msg> =
     TabularForms.update (retrieveData, validateEntry, addNewEntry, removeEntry)

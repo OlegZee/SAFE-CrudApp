@@ -4,6 +4,7 @@ open System
 open System.IO
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.DataProtection
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
@@ -25,15 +26,21 @@ let webApp =
         setStatusCode 404 >=> text "Not Found" ]
 
 let configureApp (app : IApplicationBuilder) =
-    app.UseDefaultFiles()    // .UseHttpsRedirection()   FIXME
+    app
+        .UseAuthentication()
+        .UseDefaultFiles()    // .UseHttpsRedirection()   FIXME
         .UseStaticFiles()
         .UseGiraffe webApp
 
 let configureServices (services : IServiceCollection) =
     services
         .AddGiraffe()
+        .AddAuthorization()
+        .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie()
+            .Services
         .AddDataProtection().PersistKeysToFileSystem(DirectoryInfo @"APP_DATA")
-        |> ignore
+    |> ignore
 
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddFilter(fun l -> l.Equals LogLevel.Error)

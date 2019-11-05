@@ -1,13 +1,15 @@
 module Handlers.Auth
 
-open Microsoft.AspNetCore.DataProtection
+open System.Security.Claims
+open Microsoft.AspNetCore.Authentication
+
 open Giraffe
 
-open FSharp.Data
 open FSharp.Control.Tasks.ContextInsensitive
 
 open DataAccess
 open ServerProtocol.V1
+open System
 
 [<CLIMutable>]
 type SessionData = {
@@ -17,24 +19,30 @@ type SessionData = {
 
 module private Implementation =
 
-    let isEmpty = System.String.IsNullOrWhiteSpace
+    let DefaultAuthSchema = "Cookies"
+
+    let isEmpty = String.IsNullOrWhiteSpace
+    let ClaimUserId = "userid"
+
+    // TODO it used to return 401 which causes login dialog to appear in browser
+    let notLoggedIn = RequestErrors.FORBIDDEN "You must be logged in."
+    let notProUserOrAdmin x = RequestErrors.FORBIDDEN "Permission denied. You must be a pro user or admin." x
+
+    let mustBeLoggedIn x = requiresAuthentication notLoggedIn x            
 
     let requiresAuth handler : HttpHandler =
+        mustBeLoggedIn >=>
         fun (next : HttpFunc) ctx ->
-            let protector = ctx.GetService<IDataProtectionProvider>().CreateProtector("login")
-            (next, ctx) ||>
-            match ctx.GetRequestHeader "Authorization" with
-            | Ok token ->
-                let encrypted = token.Substring 7
-    
-                match CryptoHelpers.tryDecrypt<SessionData> protector encrypted with  
-                | Some session -> handler session
-                | None -> RequestErrors.UNAUTHORIZED "Basic" "Realm" "You must be logged in"
-            | Error _ -> RequestErrors.UNAUTHORIZED "Basic" "Realm" "You must be logged in"
-    
+
+            let claims = ctx.User.Claims |> Seq.map (fun c -> c.Type, c.Value) |> Map.ofSeq
+            match claims |> Map.tryFind ClaimTypes.Role, claims |> Map.tryFind ClaimUserId |> Option.map Int32.TryParse with
+            | Some role, Some (true, userId) ->
+                handler { user_id = userId; user_role = role } next ctx
+            | _ ->
+                ServerErrors.INTERNAL_ERROR "Failed to get claims" next ctx
+
     let login : HttpHandler =
         fun next ctx -> task {
-            let protector = ctx.GetService<IDataProtectionProvider>().CreateProtector("login")
             let! loginData = ctx.BindJsonAsync<LoginPayload>()
             let pwdHash = CryptoHelpers.calculateHash loginData.pwd
 
@@ -43,10 +51,17 @@ module private Implementation =
                     where (user.Login = loginData.login); select user } |> Seq.tryHead with
 
             | Some user when user.Pwdhash = pwdHash ->
-                let sessionData = { user_id = user.Id; user_role = user.Role |> Option.defaultValue "user" }
-                let token = CryptoHelpers.encrypt protector sessionData
+                let properties = AuthenticationProperties()
+                properties.IsPersistent <- true
+                properties.ExpiresUtc <- DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(30.)) |> Nullable
 
-                return! Successful.OK { token = token } next ctx
+                let claims = 
+                    [   Claim (ClaimUserId, string user.Id)
+                        Claim (ClaimTypes.Role, user.Role |> Option.defaultValue "user")  ]
+                let principal = ClaimsPrincipal(ClaimsIdentity(claims, DefaultAuthSchema))
+                
+                do! ctx.SignInAsync principal
+                return! Successful.OK () next ctx
             | _ ->
                 return! RequestErrors.FORBIDDEN () next ctx
         }
@@ -74,7 +89,6 @@ module private Implementation =
 
                     return! Successful.OK "{}" next ctx // FIXME change to NO_CONTENT (needs unit support in Thoth)
             }
-
 
     let who : HttpHandler =
         requiresAuth(fun session ->
@@ -115,6 +129,7 @@ let handler : HttpHandler =
     choose [
         route "/api/login" >=> POST >=> login
         route "/api/signup" >=> POST >=> signup
+        route "/api/signout" >=> POST >=> signOut DefaultAuthSchema
         route "/api/who" >=> GET >=> who
         route "/api/chpass" >=> POST >=> changePwd
     ]

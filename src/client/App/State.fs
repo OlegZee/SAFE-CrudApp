@@ -8,20 +8,18 @@ open CommonTypes
 open ServerProtocol.V1
 open ServerComm
 
-let mapUser (user: User, Token token): UserInfo =
-    { token = Token token
-      userName = user.name; userRole = user.role; target = user.targetCalories }
+let mapUser (user: User): UserInfo =
+    { userName = user.name; userRole = user.role; target = user.targetCalories }
 
-let init (user: User, token: string) =
-    let userInfo = mapUser (user, Token token)
-    Model (userInfo, NoView), Cmd.none
+let init (user: User) =
+    Model (mapUser user, NoView), Cmd.ofMsg RefreshUserData
 
 let update (msg: Msg) (model: Model) =
     // console.log("app msg", msg)
     match msg, model with
     | RefreshUserData, Model (user, _) ->
         Model (user, NoView),
-        Cmd.OfPromise.perform retrieveSummary user.token (function
+        Cmd.OfPromise.perform retrieveSummary () (function
             | Ok data -> DisplayMySummary data
             | Error e -> DisplayError e)
 
@@ -62,31 +60,30 @@ let update (msg: Msg) (model: Model) =
 
 
 let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
-    //  console.log("app url update", page)
+    console.log("app url update", page)
     match page with
     | Some Router.Home ->
         Model (user, NoView), Cmd.ofMsg RefreshUserData
 
     | Some (Router.DailyView d) ->
         let apiUrl = "/api/v1/data/" + d.ToString("yyyy-MM-dd")
-        let dayViewModel, cmd = EntryForm.State.init (apiUrl, user.token)
+        let dayViewModel, cmd = EntryForm.State.init apiUrl
         Model (user, DayView (d, user, dayViewModel)), Cmd.map DayViewMsg cmd
 
     | Some Router.ManageUsers ->
-        let usersModel, cmd = ManageUsers.State.init user.token
+        let usersModel, cmd = ManageUsers.State.init ()
         Model (user, ManageUsers usersModel), Cmd.map ManageUsersMsg cmd
 
     | Some (Router.UserOverview userId) ->
         Model (user, NoView),
-            Cmd.OfPromise.perform retrieveUserSummary (user.token, userId) (function
+            Cmd.OfPromise.perform retrieveUserSummary userId (function
             | Ok (otherUser,data) ->
-                let userInfo = mapUser (otherUser, user.token)
-                DisplayUserSummary (UserId otherUser.user_id, userInfo, data) 
+                DisplayUserSummary (UserId otherUser.user_id, mapUser otherUser, data) 
             | Error e -> DisplayError e )
 
     | Some (Router.UserDailyView (UserId userId, date)) ->
         let apiUrl = sprintf "/api/v1/users/%i/data/%s" userId (date.ToString("yyyy-MM-dd"))
-        let dayViewModel, cmd = EntryForm.State.init (apiUrl, user.token)
+        let dayViewModel, cmd = EntryForm.State.init apiUrl
         // HACK to get the user name
         let otherUser = appView |> function
             | UserSummaryData (otherUser, _)
@@ -95,7 +92,7 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
         Model (user, DayView (date, otherUser, dayViewModel)), Cmd.map DayViewMsg cmd
 
     | Some Router.Report ->
-        let reportModel, cmd = ReportsForm.State.init (user.token)
+        let reportModel, cmd = ReportsForm.State.init ()
         Model (user, ReportView reportModel), Cmd.map ReportViewMsg cmd
 
 
