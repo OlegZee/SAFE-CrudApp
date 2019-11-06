@@ -62,6 +62,7 @@ let update (msg: Msg) (model: Model) =
 let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
     console.log("app url update", page)
     match page with
+    | None
     | Some Router.Home ->
         Model (user, NoView), Cmd.ofMsg RefreshUserData
 

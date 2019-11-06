@@ -24,7 +24,7 @@ type Msg =
     | ProcessLogin of Login.Types.ParentMsg
     | ProcessSignup of Signup.Types.ParentMsg
     | LoggedIn of Result<User,string>
-    | SignedIn of Result<User,string>
+    | DisplayLoginScreen
     | SignOut
     | StartInitializing
 
@@ -45,40 +45,48 @@ let urlUpdate (page: Option<Page>) (model: Model) =
 
 // defines the initial state and initial command (= side-effect) of the application
 let init _ : Model * Cmd<Msg> =
-    console.log("Program.init")
-    Initializing, Cmd.OfPromise.perform checkConnection () LoggedIn
+    console.log("Program.init", document.location.toString())
+    Initializing, Cmd.ofMsg StartInitializing
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     console.log("Program.update", msg)
     match model, msg with
 
     | _, StartInitializing ->
-        Initializing, Cmd.OfPromise.perform checkConnection () LoggedIn
+        Initializing, Cmd.OfPromise.perform checkConnection () (function
+            |Error _ -> DisplayLoginScreen
+            |user -> LoggedIn user)
 
     | LoggingIn _ as model, ProcessLogin (Login.Types.ParentMsg.Login (x,y)) ->
         model, Cmd.OfPromise.perform loginServer (x, y) LoggedIn
 
     | Signup _ as model, ProcessSignup (Signup.Types.ParentMsg.Signup req) ->
-        model, Cmd.OfPromise.perform signup req SignedIn
+        model, Cmd.OfPromise.perform signup req LoggedIn
 
-    | _, LoggedIn (Ok user)
-    | _, SignedIn (Ok user) ->
-        let appModel, cmd = App.State.init (user)
+    | _, LoggedIn (Ok user) ->
+        let appModel, _ = App.State.init (user)
+        console.log("Logged in", document.location.toString())
         Connected appModel,
-            Cmd.batch [
-                toPath Home |> Navigation.newUrl
-                cmd |> Cmd.map AppMsg ]
+        Cmd.batch [
+            "/" |> Navigation.newUrl // FIXME workaround, urlUpdate is not invoked after login
+            document.location.toString() |> Navigation.newUrl   // let urlUpdate to navigate to correct page
+        ]
+
     | _, LoggedIn (Error e) ->
-        LoggingIn (Login.State.init <| Some e), Cmd.none // toPath LoginScreen |> Navigation.newUrl
-    | _, SignedIn (Error e) ->
         LoggingIn (Login.State.init <| Some e), Cmd.none
+    | _, DisplayLoginScreen ->
+        LoggingIn (Login.State.init None), Cmd.none
 
     | Connected appModel, AppMsg msg ->
         let nextModel, cmd = App.State.update msg appModel
         Connected nextModel, Cmd.map AppMsg cmd
 
     | model, SignOut ->
-        model, Cmd.OfPromise.perform signOut () (fun _ -> StartInitializing)
+        model,
+            Cmd.batch [
+                Cmd.OfPromise.perform signOut () (fun _ -> StartInitializing)
+                toPath Home |> Navigation.newUrl
+            ]
 
     | _ ->
         console.log("unhandled message", msg)
