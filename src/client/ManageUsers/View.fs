@@ -66,7 +66,7 @@ let private recordEntry (r: User, role) dispatch =
 
 let view (model: Model, role: string) (dispatch: Msg -> unit) =
     match model.data with
-    | TabularForms.ModelState.DataLoaded entries ->
+    | TabularForms.TableData.DataLoaded entries ->
         div [] [
             yield Table.table [ Table.IsBordered; Table.IsFullWidth; Table.IsStriped ] [
                 thead [ ]
@@ -80,7 +80,7 @@ let view (model: Model, role: string) (dispatch: Msg -> unit) =
                 tbody [ ]
                     [
                         yield! (entries |> List.map (fun r -> recordEntry (r, role) dispatch))
-                        yield inputEntry (model.newEntry, model.newEntryValid) dispatch
+                        yield inputEntry (model.newrec.rawFields, model.newrec.validated) dispatch
                     ] ]
 
             match model.lastError with

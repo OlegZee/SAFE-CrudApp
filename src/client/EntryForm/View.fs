@@ -64,7 +64,7 @@ let view (model: Model) (dispatch: Msg -> unit) =
               tbody [ ]
                 [
                     yield! (entries |> List.map (fun r -> recordEntry r dispatch))
-                    yield inputEntry (model.newEntry, model.newEntryValid) dispatch
+                    yield inputEntry (model.newrec.rawFields, model.newrec.validated) dispatch
                 ]
             ]
     | _ ->
