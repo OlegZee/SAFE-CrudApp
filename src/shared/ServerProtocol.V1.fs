@@ -72,6 +72,14 @@ type CreateUserPayload = {
     targetCalories: float
 }
 
+type UpdateUserPayload = {
+    login: string
+    name: string
+
+    role: string
+    targetCalories: float
+}
+
 type CreateUserResponse = {
     user_id: int
 }

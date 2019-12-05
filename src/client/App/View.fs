@@ -5,13 +5,12 @@ open Fable.React.Props
 open Fulma
 
 open App.Types
-open ServerProtocol.V1
 open Fable.FontAwesome
 
 let collectUserCalories (m: EntryForm.Types.Model): float =
     
     match m.data with
-    | Components.TabularForms.DataLoaded records -> records |> List.sumBy (fun { amount = a } -> a)
+    | Components.TabularForms.DataLoaded records -> records |> List.sumBy (fun (_, { amount = a }) -> a)
     | _ -> 0.0
 
 let private monthNames = [|

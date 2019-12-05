@@ -36,9 +36,34 @@ let private validateEntry (map: Map<string,string>) =
           targetCalories = 0.
         }
 
-let private retrieveUsers _ = ServerComm.retrieveUsers ()
-let private addNewUser (_, data: CreateUserPayload) = ServerComm.addNewUser data
+let private toCreatePayload (data: UserData) : CreateUserPayload =
+    {   login = data.login
+        name = data.name
+        role = data.role
+        targetCalories = data.targetCalories
+        pwd = data.pwd }
+
+let private toUpdatePayload (data: UserData) : UpdateUserPayload =
+    {   login = data.login
+        name = data.name
+        role = data.role
+        targetCalories = data.targetCalories }
+        
+let toData (payload: User) : (CommonTypes.UserId * UserData) =
+    CommonTypes.UserId payload.user_id,
+    {   login = payload.login
+        name = payload.name
+        role = payload.role
+        targetCalories = payload.targetCalories
+        pwd = "" }
+
+        
+let private getFields _ = Map.empty // TODO
+
+let private retrieveUsers _ = ServerComm.retrieveUsers () |> TabularForms.mapPromiseResult (List.map toData)
+let private addNewUser (_, data: UserData) = ServerComm.addNewUser (toCreatePayload data)
 let private removeUser (_, userId) = ServerComm.removeUser userId
+let private updateUser (_, userId, data: UserData) = ServerComm.updateUser (userId, (toUpdatePayload data))
 
 let update: Msg -> Model -> Model * Cmd<Msg> =
-    TabularForms.update (retrieveUsers, validateEntry, addNewUser, removeUser)
+    TabularForms.update (retrieveUsers, getFields, validateEntry, addNewUser, updateUser, removeUser)

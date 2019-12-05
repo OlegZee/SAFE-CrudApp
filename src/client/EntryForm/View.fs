@@ -9,22 +9,21 @@ open Fable.FontAwesome
 
 open Components
 open CommonTypes
-open ServerProtocol.V1
 open EntryForm.Types
 
-let recordEntry (r: UserData) dispatch =
+let recordEntry (recordId, r: DataRecord) dispatch =
     tr  []
         [ td [ Style [ TextAlign TextAlignOptions.Center] ] [ str r.rtime ]
           td [ ] [ str r.meal ]
           td [ Style [ TextAlign TextAlignOptions.Right ] ] [ str <| r.amount.ToString() ]
           td [ Style [ TextAlign TextAlignOptions.Center ] ] [
-            Button.button [ Button.OnClick (fun _ -> window.alert "Editing is not implemented yet" ) ] [    // FIXME
+            Button.button [ Button.OnClick (fun _ -> TabularForms.StartEdit recordId |> dispatch) ] [
                 Icon.icon [ Icon.Props [ Title "Edit" ] ] [ Fa.i [ Fa.Solid.Pen ] [] ] ]
-            Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> TabularForms.DeleteEntry (EntryId r.record_id) |> dispatch) ] [
+            Button.button [ Button.IsOutlined; Button.Color IsDanger; Button.OnClick (fun _ -> TabularForms.DeleteEntry recordId |> dispatch) ] [
                 Icon.icon [ Icon.Props [ Title "Remove" ] ] [ Fa.i [ Fa.Solid.Trash ] [] ] ]
           ] ]
 
-let inputEntry (map: Map<string,string>, v: Result<PostDataPayload, Map<string, string list>>) dispatch =
+let inputEntry (map: Map<string,string>, v: Result<DataRecord, Map<string, string list>>) dispatch =
     let pickField name = map |> Map.tryFind name |> Option.defaultValue ""
 
     let handleChange (field: string) =

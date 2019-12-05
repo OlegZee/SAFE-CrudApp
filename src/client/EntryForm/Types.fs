@@ -1,9 +1,14 @@
 module EntryForm.Types
 
 open CommonTypes
-open ServerProtocol.V1
+
+type DataRecord = {
+    rtime: string
+    meal: string
+    amount: float
+}
 
 type ApiUri = ApiUri of string
-type Model = Components.TabularForms.Model<UserData, PostDataPayload, ApiUri>
-type Msg = Components.TabularForms.Msg<UserData, EntryId>
+type Model = Components.TabularForms.Model<EntryId, DataRecord, ApiUri>
+type Msg = Components.TabularForms.Msg<EntryId,DataRecord>
     

@@ -2,7 +2,14 @@ module ManageUsers.Types
 
 open Components
 open CommonTypes
-open ServerProtocol.V1
 
-type Model = TabularForms.Model<User, CreateUserPayload, unit>
-type Msg = TabularForms.Msg<User,UserId>
+type UserData = {
+    login: string
+    name: string
+    role: string
+    targetCalories: float
+    pwd: string
+}
+
+type Model = TabularForms.Model<UserId, UserData, unit>
+type Msg = TabularForms.Msg<UserId, UserData>

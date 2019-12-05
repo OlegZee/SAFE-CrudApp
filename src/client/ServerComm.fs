@@ -51,9 +51,15 @@ let addNewEntry (apiUrl, data: PostDataPayload) : JS.Promise<Result<PostDataResp
         try return! Fetch.tryPost(apiUrl, data, isCamelCase = false)
         with e -> return Error (string e) }
 
-let removeEntry (apiUrl, EntryId record_id) : JS.Promise<Result<unit,string>> =
+let updateEntry (apiUrl, EntryId recordId, data: PostDataPayload) : JS.Promise<Result<unit,string>> =
     promise {
-        try let! result = Fetch.tryDelete(sprintf "%s/%i" apiUrl record_id, "", isCamelCase = false)
+        try let! result = Fetch.tryPut(sprintf "%s/%i" apiUrl recordId, data, isCamelCase = false)
+            return result |> Result.map ignore
+        with e -> return Error (string e) }
+        
+let removeEntry (apiUrl, EntryId recordId) : JS.Promise<Result<unit,string>> =
+    promise {
+        try let! result = Fetch.tryDelete(sprintf "%s/%i" apiUrl recordId, "", isCamelCase = false)
             return result |> Result.map ignore
         with e -> return Error (string e) }
 
@@ -73,9 +79,14 @@ let addNewUser (data: CreateUserPayload) : JS.Promise<Result<CreateUserResponse,
         try return! Fetch.tryPost("/api/v1/users", data, isCamelCase = false)
         with e -> return Error (string e) }
 
-let removeUser (UserId user_id) : JS.Promise<Result<unit,string>> =
+let updateUser (UserId userId, data: UpdateUserPayload) : JS.Promise<Result<unit,string>> =
     promise {
-        try let! result = Fetch.tryDelete(sprintf "/api/v1/users/%i" user_id, "", isCamelCase = false)
+        try return! Fetch.tryPut(sprintf "/api/v1/users/%i" userId, data, isCamelCase = false)
+        with e -> return Error (string e) }
+
+let removeUser (UserId userId) : JS.Promise<Result<unit,string>> =
+    promise {
+        try let! result = Fetch.tryDelete(sprintf "/api/v1/users/%i" userId, "", isCamelCase = false)
             Browser.Dom.console.log("remove result", result)
             return result |> Result.map ignore
         with e ->
