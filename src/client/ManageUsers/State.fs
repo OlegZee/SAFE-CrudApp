@@ -33,28 +33,28 @@ let private validateEntry (map: Map<string,string>) =
               |> t.MaxLen 100 "maxlen is {len}"
               |> t.MinLen 3 "minlen is {len}"
               |> t.End
-          targetCalories = 0.
+          expenseLimit = 0.
         }
 
 let private toCreatePayload (data: UserData) : CreateUserPayload =
     {   login = data.login
         name = data.name
         role = data.role
-        targetCalories = data.targetCalories
+        expenseLimit = data.expenseLimit
         pwd = data.pwd }
 
 let private toUpdatePayload (data: UserData) : UpdateUserPayload =
     {   login = data.login
         name = data.name
         role = data.role
-        targetCalories = data.targetCalories }
+        expenseLimit = data.expenseLimit }
         
 let toData (payload: User) : (CommonTypes.UserId * UserData) =
     CommonTypes.UserId payload.user_id,
     {   login = payload.login
         name = payload.name
         role = payload.role
-        targetCalories = payload.targetCalories
+        expenseLimit = payload.expenseLimit
         pwd = "" }
 
         
@@ -63,7 +63,7 @@ let private getFields (d: UserData) =
     |> Map.add "login" d.login
     |> Map.add "name" d.name
     |> Map.add "role" d.role
-    |> Map.add "targetCalories" (string d.targetCalories)
+    |> Map.add "expenseLimit" (string d.expenseLimit)
     |> Map.add "pwd" "dummy value (never seen)"
 
 let private retrieveUsers _ = ServerComm.retrieveUsers () |> TabularForms.mapPromiseResult (List.map toData)

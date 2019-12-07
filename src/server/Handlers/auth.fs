@@ -82,7 +82,7 @@ module private Implementation =
                     record.Login <- info.login
                     record.Name <- info.name
                     record.Role <- Some "user"
-                    record.TargetCalories <- Some (decimal 0)
+                    record.TargetExpenses <- Some (decimal 0)
                     record.Pwdhash <- CryptoHelpers.calculateHash info.pwd
 
                     do! dataCtx.SubmitUpdatesAsync()

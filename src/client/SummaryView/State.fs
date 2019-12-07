@@ -17,7 +17,7 @@ let update (msg: Msg) (model: Model) =
     | SaveValue newValue ->
         match System.Double.TryParse newValue with
         | true, value when value >= 0. && value < 10000. ->
-             { model with editedTarget = None }, Cmd.OfPromise.perform saveSettings { targetCalories = value }
+             { model with editedTarget = None }, Cmd.OfPromise.perform saveSettings { expenseLimit = value }
                 (function |Ok () -> SavedTargetValue value |Error e -> EditTarget)  // FIXME improve parent notification, validation/error
         | _ ->
             model, Cmd.none

@@ -12,18 +12,18 @@ open ServerProtocol.V1
 
 module private Mappings =
 
-    let user (d: PostgreSqlCalories.dataContext.``public.usersEntity``) =
+    let user (d: PostgreSqlExpenses.dataContext.``public.usersEntity``) =
         {   user_id = d.Id
             name = d.Name
             login = d.Login
-            targetCalories =  d.TargetCalories |> (Option.map float >> Option.defaultValue 0.0)
+            expenseLimit =  d.TargetExpenses |> (Option.map float >> Option.defaultValue 0.0)
             role = d.Role |> Option.defaultValue "user" }
 
-    let userData (r: PostgreSqlCalories.dataContext.``public.caloriesEntity``): UserData =
+    let userData (r: PostgreSqlExpenses.dataContext.``public.expensesEntity``): UserData =
         {
             record_id = r.Id;
-            rtime = r.ConsumeTime.ToString("hh':'mm")
-            meal = r.Meal
+            rtime = r.SpendTime.ToString("hh':'mm")
+            item = r.Item
             amount = float r.Amount
         }
 
@@ -63,7 +63,7 @@ module private UsersApi =
                     record.Login <- info.login
                     record.Name <- info.name
                     record.Role <- info.role |> validateRole
-                    record.TargetCalories <- Some (decimal info.targetCalories)
+                    record.TargetExpenses <- Some (decimal info.expenseLimit)
                     record.Pwdhash <- CryptoHelpers.calculateHash info.pwd
 
                     do! dataCtx.SubmitUpdatesAsync()
@@ -84,8 +84,8 @@ module private UsersApi =
                     data.Login <- payload.login
                     data.Name <- payload.name
                     data.Role <- Some payload.role
-                    data.TargetCalories <-
-                        payload.targetCalories |> function| a when a > 0.0 ->  Some <| decimal a | _ -> None
+                    data.TargetExpenses <-
+                        payload.expenseLimit |> function| a when a > 0.0 ->  Some <| decimal a | _ -> None
                     dataCtx.SubmitUpdates()
                     Successful.OK ""
                 | None ->
@@ -126,11 +126,11 @@ module UserInputApi =
             // TODO build query on the fly
 
             query { 
-                for record in dataCtx.Public.Calories do
+                for record in dataCtx.Public.Expenses do
                     where (record.UserId = userId
-                        && record.ConsumeDate >= dateFrom && record.ConsumeDate <= dateTo
-                        && record.ConsumeTime >= timeFrom && record.ConsumeTime <= timeTo )
-                    groupBy record.ConsumeDate into g
+                        && record.SpendDate >= dateFrom && record.SpendDate <= dateTo
+                        && record.SpendTime >= timeFrom && record.SpendTime <= timeTo )
+                    groupBy record.SpendDate into g
                     sortBy g.Key
                     select  {
                         rdate = g.Key
@@ -144,9 +144,9 @@ module UserInputApi =
         fun next ctx ->
             if query { for record in dataCtx.Public.Users do exists (record.Id = userId) } then
                 query { 
-                    for record in dataCtx.Public.Calories do
-                        where (record.UserId = userId && record.ConsumeDate = rdate)
-                        sortBy record.ConsumeTime; thenBy record.Id
+                    for record in dataCtx.Public.Expenses do
+                        where (record.UserId = userId && record.SpendDate = rdate)
+                        sortBy record.SpendTime; thenBy record.Id
                         select (Mappings.userData record)
                 } |> Seq.toList |> ctx.WriteJsonAsync
             else
@@ -162,12 +162,12 @@ module UserInputApi =
             else
                 task {
                     let! newData = ctx.BindJsonAsync<PostDataPayload>()
-                    let record = dataCtx.Public.Calories.Create()
+                    let record = dataCtx.Public.Expenses.Create()
                     // TODO validate data
                     record.UserId <- userId
-                    record.ConsumeDate <- DateTime(y, m, d)
-                    record.ConsumeTime <- TimeSpan.Parse newData.rtime
-                    record.Meal <- newData.meal
+                    record.SpendDate <- DateTime(y, m, d)
+                    record.SpendTime <- TimeSpan.Parse newData.rtime
+                    record.Item <- newData.item
                     record.Amount <- decimal newData.amount
                     do! dataCtx.SubmitUpdatesAsync()
 
@@ -177,8 +177,8 @@ module UserInputApi =
     let putUserData userId (y, m, d, recordId) : HttpHandler =
         fun next ctx -> task {
             let foundRecordMaybe = query {
-                for c in dataCtx.Public.Calories do
-                where (c.UserId = userId && c.Id = recordId && c.ConsumeDate = DateTime(y, m, d))
+                for c in dataCtx.Public.Expenses do
+                where (c.UserId = userId && c.Id = recordId && c.SpendDate = DateTime(y, m, d))
                 select (Some c)
                 exactlyOneOrDefault
             }
@@ -190,11 +190,11 @@ module UserInputApi =
                     match newData.amount with
                     | a when a > 0.0 -> dataRecord.Amount <- decimal a | _ -> ()
 
-                    match newData.meal with
-                    | null | "" -> () | s -> dataRecord.Meal <- s
+                    match newData.item with
+                    | null | "" -> () | s -> dataRecord.Item <- s
 
                     match TimeSpan.TryParse newData.rtime with
-                    | true, value -> dataRecord.ConsumeTime <- value
+                    | true, value -> dataRecord.SpendTime <- value
                     | _ -> ()
 
                     dataCtx.SubmitUpdates()
@@ -208,8 +208,8 @@ module UserInputApi =
         fun next ctx ->
             task {
                 let deleteQuery = query {
-                    for c in dataCtx.Public.Calories do
-                    where (c.UserId = userId && c.Id = recordId && c.ConsumeDate = rdate)
+                    for c in dataCtx.Public.Expenses do
+                    where (c.UserId = userId && c.Id = recordId && c.SpendDate = rdate)
                 }
                 let resultCode = Seq.length deleteQuery |> function
                     |1 -> Successful.OK | _ -> RequestErrors.NOT_FOUND  // TODO NO_CONTENT
@@ -226,7 +226,7 @@ module SettingsApi =
                     where (user.Id = userId); select user }
             |> Seq.tryHead
             |> function
-            | Some user -> ctx.WriteJsonAsync { targetCalories = user.TargetCalories |> Option.map float |> Option.defaultValue 0.0 }
+            | Some user -> ctx.WriteJsonAsync { expenseLimit = user.TargetExpenses |> Option.map float |> Option.defaultValue 0.0 }
             | _ ->         RequestErrors.NOT_FOUND "Not Found" next ctx
 
     let putSettings userId : HttpHandler =
@@ -239,8 +239,8 @@ module SettingsApi =
                 |> Seq.tryHead
                 |> function
                 | Some dataRecord ->
-                    dataRecord.TargetCalories <-
-                        settings.targetCalories |> function| a when a > 0.0 ->  Some <| decimal a | _ -> None
+                    dataRecord.TargetExpenses <-
+                        settings.expenseLimit |> function| a when a > 0.0 ->  Some <| decimal a | _ -> None
                     dataCtx.SubmitUpdates()
                     Successful.OK ""
                 | None ->

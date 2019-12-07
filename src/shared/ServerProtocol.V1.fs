@@ -6,7 +6,7 @@ type User = {
     name: string
 
     role: string
-    targetCalories: float
+    expenseLimit: float
 }
 
 type SummaryData = {
@@ -18,13 +18,13 @@ type SummaryData = {
 type UserData = {
     record_id: int
     rtime: string
-    meal: string
+    item: string
     amount: float
 }
 
 type PostDataPayload = {
     rtime: string
-    meal: string
+    item: string
     amount: float
 }
 
@@ -60,7 +60,7 @@ type SignupPayload = {
 // Settings
 
 type UserSettings = {
-    targetCalories: float
+    expenseLimit: float
 }
 
 type CreateUserPayload = {
@@ -69,7 +69,7 @@ type CreateUserPayload = {
     name: string
 
     role: string
-    targetCalories: float
+    expenseLimit: float
 }
 
 type UpdateUserPayload = {
@@ -77,7 +77,7 @@ type UpdateUserPayload = {
     name: string
 
     role: string
-    targetCalories: float
+    expenseLimit: float
 }
 
 type CreateUserResponse = {

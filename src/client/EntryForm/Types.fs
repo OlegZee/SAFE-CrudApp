@@ -4,7 +4,7 @@ open CommonTypes
 
 type DataRecord = {
     rtime: string
-    meal: string
+    item: string
     amount: float
 }
 

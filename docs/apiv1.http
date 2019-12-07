@@ -104,15 +104,15 @@ GET {{endpoint}}/api/v1/users/111/data HTTP/1.1
 
 GET {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
 
-### Add new calories
+### Add new expence item
 
 POST {{endpoint}}/api/v1/users/111/data/2019-10-20 HTTP/1.1
 content-type: application/json
 
 {
     "rtime": "12:25",
-    "meal": "Fish",
-    "amount": 125.0
+    "item": "Fish",
+    "amount": 3.0
 }
 
 ### Update data
@@ -122,7 +122,7 @@ content-type: application/json
 
 {
     "rtime": "12:22",
-    "meal": "Apple",
+    "item": "Taxi",
     "amount": 2.0
 }
 
@@ -149,7 +149,7 @@ content-type: application/json
     "name": "test1",
     "role": "user",
     "pwd": "test2",
-    "targetCalories": 0
+    "expenseLimit": 0
 }
 
 
@@ -168,8 +168,8 @@ content-type: application/json
 
 {
     "rtime": "12:10",
-    "meal": "Chicken",
-    "amount": 50.0
+    "item": "KFC",
+    "amount": 15.0
 }
 
 ### Delete mine data
@@ -186,5 +186,5 @@ PUT {{endpoint}}/api/v1/settings HTTP/1.1
 content-type: application/json
 
 {
-    "targetCalories": 480.2
+    "expenseLimit": 480.2
 }

@@ -7,7 +7,7 @@ open Fulma
 open App.Types
 open Fable.FontAwesome
 
-let collectUserCalories (m: EntryForm.Types.Model): float =
+let collectUserExpenses (m: EntryForm.Types.Model): float =
     
     match m.data with
     | Components.TabularForms.DataLoaded records -> records |> List.sumBy (fun (_, { amount = a }) -> a)
@@ -30,7 +30,7 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
                 [ Heading.h5 [] [ str <| " you should not get here" ] ]
 
         | DayView (date, user, x) ->
-            let currentCalories = collectUserCalories x
+            let currentExpenses = collectUserExpenses x
 
             div [ Class "app-screen-title" ]
               [ Heading.h2 [] [ str user.userName ]
@@ -42,9 +42,9 @@ let view (Model (user, appview) as model) (dispatch : Msg -> unit) =
                             [ Level.heading [ ] [ str "Target" ]
                               Level.title [ ] [ str <| user.target.ToString() ] ] ]
                       Level.item [ Level.Item.HasTextCentered ]
-                        [ div [ classList [ "exceed-target", currentCalories >= user.target] ]
+                        [ div [ classList [ "exceed-target", currentExpenses >= user.target] ]
                             [ Level.heading [ ] [ str "Current" ]
-                              Level.title [ ] [ str <| currentCalories.ToString() ] ] ]
+                              Level.title [ ] [ str <| currentExpenses.ToString() ] ] ]
                     ]
                 ]
         | SummaryData data ->

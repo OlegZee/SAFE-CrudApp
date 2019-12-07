@@ -14,7 +14,7 @@ open EntryForm.Types
 let recordEntry (recordId, r: DataRecord) dispatch =
     tr  []
         [ td [ Style [ TextAlign TextAlignOptions.Center] ] [ str r.rtime ]
-          td [ ] [ str r.meal ]
+          td [ ] [ str r.item ]
           td [ Style [ TextAlign TextAlignOptions.Right ] ] [ str <| r.amount.ToString() ]
           td [ Style [ TextAlign TextAlignOptions.Center ] ] [
             Button.button [ Button.OnClick (fun _ -> TabularForms.StartEdit recordId |> dispatch) ] [
@@ -35,8 +35,8 @@ let editEntry (EntryId entryId, e: TabularForms.EntryData<DataRecord> ) dispatch
                 yield Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ]
                 yield! errors "time" ]
             td [ ] [
-                yield Input.text [ Input.Placeholder "meal"; Input.DefaultValue <| pickField "meal";  handleChange "meal" ]
-                yield! errors "meal" ]
+                yield Input.text [ Input.Placeholder "item"; Input.DefaultValue <| pickField "item";  handleChange "item" ]
+                yield! errors "item" ]
             td [ ] [
                 yield Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ]
                 yield! errors "amount" ]
@@ -62,8 +62,8 @@ let inputEntry (map: Map<string,string>, v: Result<DataRecord, Map<string, strin
                 yield Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ]
                 yield! errors "time" ]
             td [ ] [
-                yield Input.text [ Input.Placeholder "meal"; Input.DefaultValue <| pickField "meal";  handleChange "meal" ]
-                yield! errors "meal" ]
+                yield Input.text [ Input.Placeholder "item"; Input.DefaultValue <| pickField "item";  handleChange "item" ]
+                yield! errors "item" ]
             td [ ] [
                 yield Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ]
                 yield! errors "amount" ]
@@ -84,7 +84,7 @@ let view (model: Model) (dispatch: Msg -> unit) =
             [ thead [ ]
                 [ tr [ ]
                      [ th [ ] [ str "Time" ]
-                       th [ ] [ str "Meal" ]
+                       th [ ] [ str "item" ]
                        th [ ] [ str "Amount" ]
                        th [ ] [ str "" ] ] ]
               tbody [ ]

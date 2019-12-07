@@ -77,7 +77,7 @@ let view (model: Model) (dispatch: Msg -> unit) =
                             [ tr [ ]
                                  [ th [ ] [ str "Date" ]
                                    th [ ] [ str "Entries Count" ]
-                                   th [ ] [ str "Amount (calories)" ] ] ]
+                                   th [ ] [ str "Amount (coins)" ] ] ]
                         tbody [ ] (records |> List.map reportLine) ]
                         ]
         ]

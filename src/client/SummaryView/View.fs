@@ -35,7 +35,7 @@ module private Internals =
                     | Some x ->
                         yield span [ Class "summary-amount" ] [
                             str <| x.amount.ToString()
-                            str " calories" ]
+                            str " coins" ]
                     | None -> yield str ""
                 ])
         ]
@@ -95,7 +95,7 @@ let view ({user = user; data = data; otherUser = otherUserId } as model) dispatc
                 | _ -> span [] [ str <| user.target.ToString() ]
 
           yield Heading.h4 [] [
-              span [] [ str "Target Calories: " ]
+              span [] [ str "Target amount: " ]
               targetValueControl
           ]
         ]

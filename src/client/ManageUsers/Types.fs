@@ -7,7 +7,7 @@ type UserData = {
     login: string
     name: string
     role: string
-    targetCalories: float
+    expenseLimit: float
     pwd: string
 }
 

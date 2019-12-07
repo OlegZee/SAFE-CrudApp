@@ -12,8 +12,8 @@ You'll need to install the following pre-requisites in order to build SAFE appli
 
 ## How to build
 
-* setup local Postgresql and roll out "calories" database
-* restore database schema by running `psql -d calories -a -f create-db.sql` from src/server folder
+* setup local Postgresql and roll out "expenses" database
+* restore database schema by running `psql -d expenses -a -f create-db.sql` from src/server folder
 * correct connection settings in src/server/DataAccess.fs
 * build using `fake build` command line
 

@@ -16,7 +16,7 @@ let validateEntry (map: Map<string,string>) =
             |> t.To TimeSpan.Parse "time should be a valid time value"
             |> t.To string ""
             |> t.End
-          meal = fromMap "meal"
+          item = fromMap "item"
             |> t.Trim
             |> t.NotBlank "name cannot be blank"
             |> t.MaxLen 60 "maxlen is {len}"
@@ -33,18 +33,18 @@ let init apiUrl: Model * Cmd<Msg> =
 
 let dataToPayload (data: DataRecord) : PostDataPayload =
     {   rtime = data.rtime
-        meal = data.meal
+        item = data.item
         amount = data.amount }
 
 let toData (payload: UserData) : (CommonTypes.EntryId * DataRecord) =
     CommonTypes.EntryId payload.record_id,
     {   rtime = payload.rtime
-        meal = payload.meal
+        item = payload.item
         amount = payload.amount }
 
 let private getFields (d: DataRecord) =
     Map.empty
-    |> Map.add "meal" d.meal
+    |> Map.add "item" d.item
     |> Map.add "time" d.rtime
     |> Map.add "amount" (string d.amount)
 

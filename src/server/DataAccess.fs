@@ -3,10 +3,10 @@ module DataAccess
 open FSharp.Data.Sql
 
 let [<Literal>] resolutionPath = __SOURCE_DIRECTORY__ + "\\..\\..\\..\\packages\\npgsql\\Npgsql\\lib\\netstandard2.0" 
-let [<Literal>] connString = "Host=localhost;Database=calories;Username=postgres;Password=sasa"
+let [<Literal>] connString = "Host=localhost;Database=expenses;Username=postgres;Password=sasa"
 
 // create a type alias with the connection string and database vendor settings
-type PostgreSqlCalories =
+type PostgreSqlExpenses =
     SqlDataProvider<
         DatabaseVendor = Common.DatabaseProviderTypes.POSTGRESQL,
         ConnectionString = connString,
@@ -14,7 +14,7 @@ type PostgreSqlCalories =
         UseOptionTypes = true,
         Owner = "public">
 
-let dataCtx = PostgreSqlCalories.GetDataContext()
+let dataCtx = PostgreSqlExpenses.GetDataContext()
 
 let initializeDb () =
         
@@ -30,7 +30,7 @@ let initializeDb () =
         record.Login <- "admin"
         record.Name <- "root"
         record.Role <- Some "admin"
-        record.TargetCalories <- Some (decimal 0)
+        record.TargetExpenses <- Some (decimal 0)
         record.Pwdhash <- CryptoHelpers.calculateHash tempPass
 
         dataCtx.SubmitUpdates()

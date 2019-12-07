@@ -9,7 +9,7 @@ open ServerProtocol.V1
 open ServerComm
 
 let mapUser (user: User): UserInfo =
-    { userName = user.name; userRole = user.role; target = user.targetCalories }
+    { userName = user.name; userRole = user.role; target = user.expenseLimit }
 
 let init (user: User) =
     Model (mapUser user, NoView), Cmd.ofMsg RefreshUserData
