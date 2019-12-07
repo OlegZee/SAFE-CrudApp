@@ -50,7 +50,7 @@ let inputEntry (e: Map<string,string>, v: Result<UserData, Map<string, string li
             ]
 
 
-let private editEntry (UserId userId, e: TabularForms.EntryData<UserData> ) dispatch =
+let private editEntry (UserId userId, e: TabularForms.EntryData<UserData>) dispatch =
     let handleChange (field: string) =
         (fun (e: Browser.Types.Event) -> TabularForms.SetEditField (field, !!e.target?value) |> dispatch)
     let pickField name = e.rawFields |> Map.tryFind name |> Option.defaultValue ""
@@ -65,15 +65,17 @@ let private editEntry (UserId userId, e: TabularForms.EntryData<UserData> ) disp
                 yield Input.text [ Input.Placeholder "name"; Input.DefaultValue <| pickField "name"; Input.OnChange (handleChange "name") ]
                 yield! errors "name" ]
             td [ ] [
-                yield roleSelector ("user", handleChange "role")
+                yield roleSelector (pickField "role", handleChange "role")
                 yield! errors "role" ]
             td [ ] [ ]
             td [ Style [ TextAlign TextAlignOptions.Center ] ] [
                 let disabled = e.validated |> function | Ok _ -> false | Error _ -> true
                 yield Button.button [
-                    Button.IsFullWidth; Button.Disabled disabled
+                    Button.Disabled disabled
                     Button.Color (if disabled then IsGrey else IsSuccess)
-                    Button.OnClick(fun _ -> dispatch TabularForms.SaveEditEntry) ] [ str "Apply" ] ]
+                    Button.OnClick(fun _ -> dispatch TabularForms.SaveEditEntry) ] [ str "Apply" ]
+                yield Button.button [
+                    Button.OnClick(fun _ -> dispatch TabularForms.CancelEdit) ] [ str "Cancel" ] ]
             ]
 
 let private recordEntry (UserId userId as uid, r: UserData, role) dispatch =

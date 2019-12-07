@@ -58,7 +58,13 @@ let toData (payload: User) : (CommonTypes.UserId * UserData) =
         pwd = "" }
 
         
-let private getFields _ = Map.empty // TODO
+let private getFields (d: UserData) =
+    Map.empty
+    |> Map.add "login" d.login
+    |> Map.add "name" d.name
+    |> Map.add "role" d.role
+    |> Map.add "targetCalories" (string d.targetCalories)
+    |> Map.add "pwd" "dummy value (never seen)"
 
 let private retrieveUsers _ = ServerComm.retrieveUsers () |> TabularForms.mapPromiseResult (List.map toData)
 let private addNewUser (_, data: UserData) = ServerComm.addNewUser (toCreatePayload data)

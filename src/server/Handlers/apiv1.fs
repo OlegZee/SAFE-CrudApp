@@ -71,6 +71,28 @@ module private UsersApi =
                     return! Successful.CREATED ({ user_id = record.Id }) next ctx
             }
 
+    let updateUser userId : HttpHandler =
+        fun next ctx -> task {
+            let! payload = ctx.BindJsonAsync<UpdateUserPayload>()
+            let result =
+                query {
+                    for u in dataCtx.Public.Users do
+                    where (u.Id = userId); select u }
+                |> Seq.tryHead
+                |> function
+                | Some data ->
+                    data.Login <- payload.login
+                    data.Name <- payload.name
+                    data.Role <- Some payload.role
+                    data.TargetCalories <-
+                        payload.targetCalories |> function| a when a > 0.0 ->  Some <| decimal a | _ -> None
+                    dataCtx.SubmitUpdates()
+                    Successful.OK ""
+                | None ->
+                    RequestErrors.NOT_FOUND "Not Found"
+            return! result next ctx
+        }
+
     let deleteUser userId  : HttpHandler =
         fun next ctx ->
             let reportDbError text = RequestErrors.CONFLICT {| error = text |} next ctx
@@ -88,7 +110,6 @@ module private UsersApi =
             }
             
 module UserInputApi =
-    open System
     // returns SummaryData
     let getUserSummary (userId: int): HttpHandler =
         fun next ctx ->
@@ -250,6 +271,7 @@ let handler : HttpHandler =
                         route "" >=> GET >=> UsersApi.users
                         route "" >=> POST >=> UsersApi.createUser
                         GET >=> routef "/%i" UsersApi.getUser
+                        PUT >=> routef "/%i" UsersApi.updateUser
                         DELETE >=> routef "/%i" UsersApi.deleteUser ])
                 requiresRole ["admin"]
                     (subRoutef "/%i/data" usersDataHandler)

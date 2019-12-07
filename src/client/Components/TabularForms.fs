@@ -36,6 +36,7 @@ module TabularForms =
         | StartEdit of 'rkey
         | SetEditField of string * string
         | SaveEditEntry
+        | CancelEdit
 
 
     let private initValidationError () = Error <| Map.add "" ["input incomplete"] Map.empty
@@ -114,6 +115,9 @@ module TabularForms =
             | _ ->
                 console.warn("record is not being edited or not valid")
                 model, Cmd.none
+
+        | CancelEdit ->
+            { model with edited = None }, Cmd.none
 
         | _ ->
             model, Cmd.none

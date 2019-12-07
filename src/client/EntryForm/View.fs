@@ -23,6 +23,33 @@ let recordEntry (recordId, r: DataRecord) dispatch =
                 Icon.icon [ Icon.Props [ Title "Remove" ] ] [ Fa.i [ Fa.Solid.Trash ] [] ] ]
           ] ]
 
+let editEntry (EntryId entryId, e: TabularForms.EntryData<DataRecord> ) dispatch =
+    let pickField name = e.rawFields |> Map.tryFind name |> Option.defaultValue ""
+
+    let handleChange (field: string) =
+        Input.OnChange (fun e -> TabularForms.SetEditField (field, !!e.target?value) |> dispatch)
+    let errors fieldName = ValidateHelpers.errors e.validated fieldName
+
+    tr  [ ]
+        [   td [ ] [
+                yield Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ]
+                yield! errors "time" ]
+            td [ ] [
+                yield Input.text [ Input.Placeholder "meal"; Input.DefaultValue <| pickField "meal";  handleChange "meal" ]
+                yield! errors "meal" ]
+            td [ ] [
+                yield Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ]
+                yield! errors "amount" ]
+            td [ Style [ TextAlign TextAlignOptions.Center ] ] [
+                let disabled = e.validated |> function |Ok _ -> false | Error _ -> true
+                yield Button.button [
+                    Button.Disabled disabled
+                    Button.Color (if disabled then IsGrey else IsSuccess)
+                    Button.OnClick(fun _ -> dispatch TabularForms.SaveEditEntry) ] [ str "Apply" ]
+                yield Button.button [
+                    Button.OnClick(fun _ -> dispatch TabularForms.CancelEdit) ] [ str "Cancel" ] ]
+            ]
+        
 let inputEntry (map: Map<string,string>, v: Result<DataRecord, Map<string, string list>>) dispatch =
     let pickField name = map |> Map.tryFind name |> Option.defaultValue ""
 
@@ -62,7 +89,14 @@ let view (model: Model) (dispatch: Msg -> unit) =
                        th [ ] [ str "" ] ] ]
               tbody [ ]
                 [
-                    yield! (entries |> List.map (fun r -> recordEntry r dispatch))
+                    yield! (entries |> List.map
+                        (function record ->
+                            match model.edited with
+                            | Some (rkey,edited) when rkey = fst record ->
+                                editEntry (rkey, edited) dispatch
+                            | _ ->
+                                recordEntry record dispatch
+                        ))
                     yield inputEntry (model.newrec.rawFields, model.newrec.validated) dispatch
                 ]
             ]

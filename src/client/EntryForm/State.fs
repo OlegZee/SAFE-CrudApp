@@ -42,7 +42,12 @@ let toData (payload: UserData) : (CommonTypes.EntryId * DataRecord) =
         meal = payload.meal
         amount = payload.amount }
 
-let private getFields _ = Map.empty // TODO
+let private getFields (d: DataRecord) =
+    Map.empty
+    |> Map.add "meal" d.meal
+    |> Map.add "time" d.rtime
+    |> Map.add "amount" (string d.amount)
+
 let private retrieveData (ApiUri apiUrl) = ServerComm.retrieveDailyData apiUrl |> TabularForms.mapPromiseResult (List.map toData)
 let private addNewEntry (ApiUri apiUrl, data: DataRecord) = ServerComm.addNewEntry (apiUrl, dataToPayload data)
 let private removeEntry (ApiUri apiUrl, recId) = ServerComm.removeEntry (apiUrl, recId)
