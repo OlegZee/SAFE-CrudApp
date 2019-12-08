@@ -35,7 +35,7 @@ let editEntry (EntryId entryId, e: TabularForms.EntryData<DataRecord> ) dispatch
                 yield Input.time [ Input.Placeholder "time"; Input.DefaultValue <| pickField "time"; handleChange "time" ]
                 yield! errors "time" ]
             td [ ] [
-                yield Input.text [ Input.Placeholder "item"; Input.DefaultValue <| pickField "item";  handleChange "item" ]
+                yield Input.text [ Input.Placeholder "expense item"; Input.DefaultValue <| pickField "item";  handleChange "item" ]
                 yield! errors "item" ]
             td [ ] [
                 yield Input.number [ Input.Placeholder "amount"; Input.DefaultValue <| pickField "amount"; handleChange "amount" ]
@@ -90,7 +90,7 @@ let view (model: Model) (dispatch: Msg -> unit) =
               tbody [ ]
                 [
                     yield! (entries |> List.map
-                        (function record ->
+                        (fun record ->
                             match model.edited with
                             | Some (rkey,edited) when rkey = fst record ->
                                 editEntry (rkey, edited) dispatch

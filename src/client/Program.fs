@@ -68,8 +68,8 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
         console.log("Logged in", document.location.toString())
         Connected appModel,
         Cmd.batch [
-            "/" |> Navigation.newUrl // FIXME workaround, urlUpdate is not invoked after login
-            document.location.toString() |> Navigation.newUrl   // let urlUpdate to navigate to correct page
+                toPath Home |> Navigation.newUrl // FIXME workaround, urlUpdate is not invoked after login
+                document.location.toString() |> Navigation.newUrl   // let urlUpdate to navigate to correct page
         ]
 
     | _, LoggedIn (Error e) ->

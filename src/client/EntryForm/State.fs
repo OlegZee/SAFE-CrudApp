@@ -13,12 +13,12 @@ let validateEntry (map: Map<string,string>) =
     all <| fun t ->
         let fromMap name = (map |> Map.tryFind name |> Option.defaultValue "") |> t.Test name in
         { rtime = fromMap "time"
-            |> t.To TimeSpan.Parse "time should be a valid time value"
+            |> t.To TimeSpan.Parse "should be a valid time value"
             |> t.To string ""
             |> t.End
           item = fromMap "item"
             |> t.Trim
-            |> t.NotBlank "name cannot be blank"
+            |> t.NotBlank "cannot be blank"
             |> t.MaxLen 60 "maxlen is {len}"
             |> t.MinLen 3 "minlen is {len}"
             |> t.End

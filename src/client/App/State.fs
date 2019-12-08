@@ -99,5 +99,3 @@ let urlUpdate (page: Option<Router.Page>) (Model (user, appView) as model) =
 
     | Some page ->
         Model (user, ErrorView (page.ToString())), Cmd.none
-    
-    | _ -> model, Cmd.none
