@@ -1,8 +1,21 @@
-# Good shape application
+# Expense recorder application
+
+The application demonstrates what can be accomplished in 30-40 hours with SAFE stack with a very basic knowledge of the SAFE.
+Application features:
+
+* Giraffe based backend
+* using Postgres with F# Data Providers for persisting app data
+* simplistic REST Api
+* authentication and authorization
+* sharing F# code between client and server to ensure contracts
+* client routing to ensure application is navigation friendly
+* Fulma to build nice looking UI with a very basic HTML design skills
+
+I would love to use some newer things to simplify say client-server communication (kudos to Zaid Ajaj) but I was asked to expose REST Api.
 
 ## Install pre-requisites
 
-You'll need to install the following pre-requisites in order to build SAFE applications
+You'll need to install the following pre-requisites in order to build SAFE applications:
 
 * The [.NET Core SDK](https://www.microsoft.com/net/download)
 * [FAKE 5](https://fake.build/) installed as a [global tool](https://fake.build/fake-gettingstarted.html#Install-FAKE)
@@ -21,21 +34,10 @@ Now you could run the application:
 
 ```bash
 cd src\server
-bin\Debug\netcoreapp3.0\server.exe 
+dotnet run
 ```
 
 * now navigate to [http://localhost:8085]
 * if the database is new connect under admin/<pwd>, where pwd is some number you can find in server logs
 
-`fake build target Run` start development mode.
-
-## Setup notes (DRAFT, Not correct)
-
-Use `fake run` command to start the server in development mode.
-Use one of the following accounts to access the server:
-
-* admin:123 - gives access to all records
-* manager:234 - allows to create/update users
-* demo:demo - connect as a regular user
-
-> You could only login under priviledged account from the localhost when server is running in development mode.
+`fake build target Run` starts development mode.
