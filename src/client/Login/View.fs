@@ -18,12 +18,13 @@ module State =
 let view (model : Model) (dispatchParent: ParentMsg -> unit) =
     let loginRef = createRef None
     let pwdRef = createRef None
-    let loginBtnHandler _ =
+    let loginBtnHandler (evt: Browser.Types.Event) =
         match loginRef.current, pwdRef.current with
         | Some inputLogin, Some inputPwd ->
             dispatchParent <| Login (inputLogin?value, inputPwd?value)
         | _ ->
             ()
+        evt.preventDefault()
 
     Column.column
         [ Column.Width (Screen.All, Column.Is4)
