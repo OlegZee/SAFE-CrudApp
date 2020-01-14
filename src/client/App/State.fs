@@ -21,7 +21,7 @@ let update (msg: Msg) (model: Model) =
         Model (user, NoView),
         Cmd.OfPromise.perform retrieveSummary () (function
             | Ok data -> DisplayMySummary data
-            | Error e -> DisplayError e)
+            | Error e -> DisplayError (string e))
 
     | DisplayError e, Model (user, _) ->
         Model (user, ErrorView e), Cmd.none

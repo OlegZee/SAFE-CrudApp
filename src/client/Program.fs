@@ -12,6 +12,7 @@ open Fable.React.Props
 open ServerProtocol.V1
 open ServerComm
 open Router
+open Thoth.Fetch
 
 type Model =
     | Initializing
@@ -23,7 +24,7 @@ type Msg =
     | AppMsg of App.Types.Msg
     | ProcessLogin of Login.Types.ParentMsg
     | ProcessSignup of Signup.Types.ParentMsg
-    | LoggedIn of Result<User,string>
+    | LoggedIn of Result<User,FetchError>
     | DisplayLoginScreen
     | SignOut
     | StartInitializing
@@ -45,11 +46,11 @@ let urlUpdate (page: Option<Page>) (model: Model) =
 
 // defines the initial state and initial command (= side-effect) of the application
 let init _ : Model * Cmd<Msg> =
-    console.log("Program.init", document.location.toString())
+    // console.log("Program.init", document.location.toString())
     Initializing, Cmd.ofMsg StartInitializing
 
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
-    console.log("Program.update", msg)
+    // console.log("Program.update", msg)
     match model, msg with
 
     | _, StartInitializing ->
@@ -73,7 +74,7 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
         ]
 
     | _, LoggedIn (Error e) ->
-        LoggingIn (Login.State.init <| Some e), Cmd.none
+        LoggingIn (Login.State.init <| Some (string e)), Cmd.none
     | _, DisplayLoginScreen ->
         LoggingIn (Login.State.init None), Cmd.none
 

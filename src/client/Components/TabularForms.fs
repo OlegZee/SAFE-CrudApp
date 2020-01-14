@@ -1,4 +1,5 @@
 namespace Components
+open Thoth.Fetch
 
 module TabularForms =
     open Elmish
@@ -31,7 +32,7 @@ module TabularForms =
         | SetNewField of string * string
         | SaveNewEntry
         | DeleteEntry of 'rkey
-        | ReceivedData of Result<('rkey * 'trec) list,string>
+        | ReceivedData of Result<('rkey * 'trec) list,FetchError>
 
         | StartEdit of 'rkey
         | SetEditField of string * string
@@ -57,9 +58,15 @@ module TabularForms =
           edited = None
           lastError = None }, Cmd.ofMsg RefreshData
 
+    let mapFetchError: FetchError -> string = function
+        | FetchFailed s -> "fetch failed: " + s.ToString()
+        | DecodingFailed _ -> "decoding failed"
+        | NetworkError _ -> "network error"
+        | PreparingRequestFailed _ -> "pr failed"
+
     let update (retrieveData,getFields,validateFields,addNewEntry,updateEntry,removeEntry) (msg: Msg<'rkey,'tr>) (model: Model<'rkey,'tr,_>) =
         
-        let respondRestApiResult = function |Ok _ -> RefreshData | Error e -> SetLastError (Some e)
+        let respondRestApiResult = function |Ok _ -> RefreshData | Error e -> SetLastError (Some (mapFetchError e))
         match msg with
         | RefreshData ->
             { model with data = Loading; newrec = initEntry (); edited = None },
@@ -84,7 +91,7 @@ module TabularForms =
 
         | DeleteEntry recordId ->
             model, Cmd.OfPromise.perform removeEntry (model.customData, recordId) (
-                function |Ok _ -> RefreshData | Error e -> SetLastError (Some <| sprintf "Failed to remove user (%s)" e)
+                function |Ok _ -> RefreshData | Error e -> SetLastError (Some <| sprintf "Failed to remove user (%s)" (mapFetchError e))
             )
 
         | StartEdit recordId ->
@@ -110,7 +117,7 @@ module TabularForms =
             match model with
             | { edited = Some (rkey, {validated = Ok updEntry})} ->
                 model, Cmd.OfPromise.perform updateEntry (model.customData, rkey, updEntry) (
-                    function |Ok _ -> RefreshData | Error e -> SetLastError (Some <| sprintf "Failed to remove user (%s)" e)
+                    function |Ok _ -> RefreshData | Error e -> SetLastError (Some <| sprintf "Failed to remove user (%s)" (mapFetchError e))
                 )
             | _ ->
                 console.warn("record is not being edited or not valid")

@@ -27,14 +27,14 @@ group Client
     nuget Fable.Elmish.Debugger ~> 3
     nuget Fable.Elmish.HMR ~> 4
     nuget Fable.Elmish.React ~> 3
-nuget Fable.Validation
-nuget Fulma.Elmish
-nuget Fulma.Extensions.Wikiki.Calendar
-    nuget Thoth.Json 3.3
-    nuget Thoth.Fetch ~> 1
-    nuget Fable.React ~> 5
-    nuget Fulma ~> 2
     nuget Fable.FontAwesome.Free ~> 2
+    nuget Fable.React ~> 5
+    nuget Fable.Validation
+    nuget Fulma ~> 2
+    nuget Fulma.Elmish
+    nuget Fulma.Extensions.Wikiki.Calendar
+    nuget Thoth.Json
+    nuget Thoth.Fetch 2.0.0-beta-002
 
 group npgsql
     source https://api.nuget.org/v3/index.json
