@@ -7,6 +7,12 @@ group Server
     nuget SQLProvider
     nuget Npgsql 3.2.5
 
+group npgsql
+    # required for sql typeprovider
+    source https://api.nuget.org/v3/index.json
+    framework: netstandard2.0
+    nuget Npgsql 3.2.5
+
 group Tests
     source https://api.nuget.org/v3/index.json
     framework: netcoreapp3.0
