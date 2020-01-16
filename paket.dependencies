@@ -36,10 +36,7 @@ group Client
     nuget Thoth.Json
     nuget Thoth.Fetch 2.0.0-beta-002
 
-group npgsql
     source https://api.nuget.org/v3/index.json
-
-    nuget Npgsql 3.2.5
 
 group Build
     source https://api.nuget.org/v3/index.json
